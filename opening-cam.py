@@ -1,27 +1,29 @@
 # import the opencv library
-import cv2
-
+import numpy as np
+import cv2 as cv
 
 # define a video capture object
-vid = cv2.VideoCapture(0)
+capture = cv.VideoCapture(0)
+if not capture.isOpened():
+	print("Cannot open camera")
+	exit()
 
 while(True):
+	# Capture the video frame-by-frame
+	ret, frame = capture.read()
 	
-	# Capture the video frame
-	# by frame
-	ret, frame = vid.read()
-
-	# Display the resulting frame
-	cv2.imshow('frame', frame)
-	
-	# the 'q' button is set as the
-	# quitting button you may use any
-	# desired button of your choice
-	if cv2.waitKey(1) & 0xFF == ord('q'):
+	# if frame is read correctly, ret is true
+	if not ret:
+		print("Can't receive frame (stream end?). Exiting ...")
 		break
 
-# After the loop release the cap object
-vid.release()
-# Destroy all the windows
-cv2.destroyAllWindows()
+	# Display the resulting frame
+	cv.imshow('Live Feed', frame)
+	
+	# wait 1ms for key input: 'q' (quit)
+	if cv.waitKey(1) == ord('q'):
+		break
 
+# After the loop release the capture object
+capture.release()
+cv.destroyAllWindows()
