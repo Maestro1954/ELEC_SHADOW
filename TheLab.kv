@@ -1,4 +1,30 @@
-AnchorLayoutExample:
+WidgetsExample:
+
+
+<WidgetsExample>:
+    #right, left, center
+    anchor_x: "right"
+    #buttom, top, center
+    anchor_y: "bottom"
+    BoxLayout:
+        orientation: "vertical"
+        size_hint: .2, .2
+        spacing: "5dp"
+        Button:
+            text: "Capture"
+            on_press: root.on_button_click()
+        Button:
+            text: "Video"
+            on_press: root.on_button_click()
+        Button:
+            text: "Overlay"
+            on_press: root.on_button_click()
+        Button:
+            text: "Zoom"
+            on_press: root.on_button_click()
+        Button:
+            text: "Export"
+            on_press: root.on_button_click()
 
 
 <AnchorLayoutExample>:
@@ -12,6 +38,7 @@ AnchorLayoutExample:
         spacing: "5dp"
         Button:
             text: "Capture"
+            on_press: root.on_button_click()
         Button:
             text: "Video"
         Button:

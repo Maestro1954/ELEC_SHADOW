@@ -8,6 +8,10 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.stacklayout import StackLayout
 from kivy.uix.widget import Widget
 
+class WidgetsExample(AnchorLayout):
+    def on_button_click(self):
+        print("Button Clicked")
+
 class AnchorLayoutExample(AnchorLayout):
     pass
 
