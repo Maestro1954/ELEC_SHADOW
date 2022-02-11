@@ -2,6 +2,8 @@
 import numpy as np
 import cv2 as cv
 
+img_counter = 0
+
 # define a video capture object
 capture = cv.VideoCapture(0)
 if not capture.isOpened():
@@ -20,9 +22,16 @@ while(True):
 	# Display the resulting frame
 	cv.imshow('Live Feed', frame)
 	
-	# wait 1ms for key input: 'q' (quit)
-	if cv.waitKey(1) == ord('q'):
-		break
+	# Get user input
+    	key = cv.waitKey(1)
+    	if key == ord('q'):
+        	break
+    	elif key == ord('c'):
+        	# Create screenshot variable with updating filename: /filepath/screenshot_{img_counter}.png
+        	screenshot = "/home/pi/ELEC_SHADOW/Screenshots/screenshot_{}.png".format(img_counter)
+        	# Write current frame to screenshot variable
+        	cv.imwrite(screenshot, frame)
+        	img_counter += 1
 
 # After the loop release the capture object
 capture.release()
