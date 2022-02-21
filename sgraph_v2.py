@@ -49,7 +49,7 @@ def exitWindow(event=0):
 capture = cv.VideoCapture(0)
 if not capture.isOpened():
 	print("Cannot open camera")
-	sys.exit(1)
+	sys.exit(1) # sys.exit(_): Exits the code, 1 indicates an error, 0 indicates success
 else:
 	capWidth = capture.get(3)
 	capHeight = capture.get(4)
