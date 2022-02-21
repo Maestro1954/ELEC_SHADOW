@@ -4,7 +4,7 @@ import cv2 as cv
 import tkinter as tk
 import os
 import sys
-from PIL import Image, ImageTk # pip install pillow
+from PIL import Image, ImageTk # pip3 install pillow
 
 img_counter = 0
 cancel = False
