@@ -4,6 +4,7 @@ import cv2 as cv
 import tkinter as tk
 import os
 import sys
+import os.path
 from PIL import Image, ImageTk # pip3 install pillow
 
 img_counter = 0
@@ -19,27 +20,25 @@ def prompt_ok(event = 0):
     button1.place(anchor=tk.CENTER, relx=0.2, rely=0.9, width=150, height=50)
     button2.place(anchor=tk.CENTER, relx=0.8, rely=0.9, width=150, height=50)
     button1.focus()
-    
-#attemp 
-#def timer_cap(event= 0): 
- #   button.place_forget() #hides button
-  #  second = 0
-    
-    
-
 
 def saveAndReturn(event = 0):
-	global img_counter
+    global img_counter
 
-	# Create screenshot variable with updating filename: /filepath/screenshot_{img_counter}.png
-	screenshot = "C:/Users//screenshot_{}.png".format(img_counter)
-	# Write current frame to screenshot variable
-	cv.imwrite(screenshot, frame)
-	img_counter += 1
-	resume()
+    filepath = "C:\Users\adrie\Documents\Documents\UNC_Charlotte\Spring 2022\ECGR-4252 Senior Design II\Code\Tkinter Code\Screenshots"
+    # Create screenshot variable with updating filename: /filepath/screenshot_{img_counter}.png
+    if os.path.isdir(filepath):
+        screenshot = filepath + "/screenshot_{}.png".format(img_counter)
+        print(f"Filepath {screenshot} is invalid")
+        # Write current frame to screenshot variable
+        cv.imwrite(screenshot, frame)
+        img_counter += 1
+        resume()
+    else:
+        print("Invalid filepath, screenshot discarded...")
+        resume()
 
 def resume(event = 0):
-    global button1, button2, button, button_timer, lmain, cancel
+    global button1, button2, button, lmain, cancel
 
     cancel = False
 
@@ -74,7 +73,6 @@ mainWindow.bind('<Escape>', lambda e: mainWindow.quit()) # .bind('<Escape>', ...
 lmain = tk.Label(mainWindow, compound=tk.CENTER, anchor=tk.CENTER, relief=tk.RAISED)
 button = tk.Button(mainWindow, text="Capture", command=prompt_ok)
 button_changeCam = tk.Button(mainWindow, text="Exit", command=exitWindow)
-button_timer = tk.Button(mainWindow, text = "Set Timer", command = timer_cap) #button attempt 
 
 lmain.pack()
 button.place(bordermode=tk.INSIDE, relx=0.5, rely=0.9, anchor=tk.CENTER, width=300, height=50)
@@ -96,22 +94,6 @@ def show_frame():
     lmain.configure(image=imgtk)
     if not cancel:
         lmain.after(10, show_frame)
-        
-
-def add():
-    global second
-    second += 1
-    label.config(text=str(second))
-    label.after(100)
-    print(second)
-
-def sub():
-    global second
-
-    second -= 1
-    label.config(text=str(second))
-    label.after(100)
-    print(second) 
 
 show_frame()
 mainWindow.mainloop()
