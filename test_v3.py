@@ -4,8 +4,7 @@ import cv2 as cv
 import tkinter as tk
 import os
 import sys
-import os.path
-from PIL import Image, ImageTk # pip3 install pillow
+from PIL import Image, ImageTk # pip install pillow
 
 img_counter = 0
 cancel = False
@@ -22,20 +21,14 @@ def prompt_ok(event = 0):
     button1.focus()
 
 def saveAndReturn(event = 0):
-    global img_counter
+	global img_counter
 
-    filepath = "C:\Users\adrie\Documents\Documents\UNC_Charlotte\Spring 2022\ECGR-4252 Senior Design II\Code\Tkinter Code\Screenshots"
-    # Create screenshot variable with updating filename: /filepath/screenshot_{img_counter}.png
-    if os.path.isdir(filepath):
-        screenshot = filepath + "/screenshot_{}.png".format(img_counter)
-        print(f"Filepath {screenshot} is invalid")
-        # Write current frame to screenshot variable
-        cv.imwrite(screenshot, frame)
-        img_counter += 1
-        resume()
-    else:
-        print("Invalid filepath, screenshot discarded...")
-        resume()
+	# Create screenshot variable with updating filename: /filepath/screenshot_{img_counter}.png
+	screenshot = "C:/Users/adrie/Documents/Documents/UNC_Charlotte/Spring 2022/ECGR-4252 Senior Design II/Code/Tkinter Code/Screenshots/screenshot_{}.png".format(img_counter)
+	# Write current frame to screenshot variable
+	cv.imwrite(screenshot, frame)
+	img_counter += 1
+	resume()
 
 def resume(event = 0):
     global button1, button2, button, lmain, cancel
@@ -52,11 +45,24 @@ def resume(event = 0):
 def exitWindow(event=0):
 	mainWindow.quit()
 
+def timerWindow(event=0):
+    global cancel, button, button_timer, buttonT
+    cancel = False
+
+    button.place_forget()
+    button_timer.place_forget()
+    buttonT = tk.Button(mainWindow, text="Timer Button", command=setTimer)
+    buttonT.place(anchor=tk.CENTER, relx=0.2, rely=0.9, width=150, height=50)
+    buttonT.focus()
+
+def setTimer(event=0):
+    sys.exit(0)
+
 # define a video capture object
 capture = cv.VideoCapture(0)
 if not capture.isOpened():
 	print("Cannot open camera")
-	sys.exit(1) # sys.exit(_): Exits the code, 1 indicates an error, 0 indicates success
+	sys.exit(1)
 else:
 	capWidth = capture.get(3)
 	capHeight = capture.get(4)
@@ -72,12 +78,14 @@ mainWindow.resizable(width=False, height=False)
 mainWindow.bind('<Escape>', lambda e: mainWindow.quit()) # .bind('<Escape>', ...) makes the esc key close the main window
 lmain = tk.Label(mainWindow, compound=tk.CENTER, anchor=tk.CENTER, relief=tk.RAISED)
 button = tk.Button(mainWindow, text="Capture", command=prompt_ok)
-button_changeCam = tk.Button(mainWindow, text="Exit", command=exitWindow)
+button_Exit = tk.Button(mainWindow, text="Exit", command=exitWindow)
+button_timer = tk.Button(mainWindow, text="Set Timer", command=timerWindow)
 
 lmain.pack()
-button.place(bordermode=tk.INSIDE, relx=0.5, rely=0.9, anchor=tk.CENTER, width=300, height=50)
+button.place(bordermode=tk.INSIDE, relx=0.85, rely=0.9, anchor=tk.CENTER, width=150, height=50)
 button.focus()
-button_changeCam.place(bordermode=tk.INSIDE, relx=0.85, rely=0.1, anchor=tk.CENTER, width=150, height=50)
+button_Exit.place(bordermode=tk.INSIDE, relx=0.85, rely=0.1, anchor=tk.CENTER, width=150, height=50)
+button_timer.place(bordermode=tk.INSIDE, relx=0.85, rely=0.8, anchor=tk.CENTER, width=150, height=50)
 
 def show_frame():
     global cancel, prevImg, button
