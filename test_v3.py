@@ -10,10 +10,11 @@ img_counter = 0
 cancel = False
 
 def prompt_ok(event = 0):
-    global cancel, button, button1, button2
+    global cancel, button, button1, button2, button_timer
     cancel = True
 
     button.place_forget()
+    button_timer.place_forget()
     button1 = tk.Button(mainWindow, text="Save Image", command=saveAndReturn)
     button2 = tk.Button(mainWindow, text="Discard", command=resume)
     button1.place(anchor=tk.CENTER, relx=0.2, rely=0.9, width=150, height=50)
@@ -39,7 +40,8 @@ def resume(event = 0):
     button2.place_forget()
 
     mainWindow.bind('<Return>', prompt_ok)
-    button.place(bordermode=tk.INSIDE, relx=0.5, rely=0.9, anchor=tk.CENTER, width=300, height=50)
+    button.place(bordermode=tk.INSIDE, relx=0.85, rely=0.9, anchor=tk.CENTER, width=150, height=50)
+    button_timer.place(bordermode=tk.INSIDE, relx=0.85, rely=0.8, anchor=tk.CENTER, width=150, height=50)
     lmain.after(10, show_frame)
 
 def exitWindow(event=0):
