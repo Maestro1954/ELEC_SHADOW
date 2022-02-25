@@ -9,17 +9,34 @@ from PIL import Image, ImageTk # pip install pillow
 img_counter = 0
 cancel = False
 
-def prompt_ok(event = 0):
-    global cancel, button, button1, button2, button_timer
+# define a video capture object
+capture = cv.VideoCapture(0)
+
+if not capture.isOpened():
+	print("Cannot open camera")
+	sys.exit(1)
+else:
+	capWidth = capture.get(3)
+	capHeight = capture.get(4)
+
+# Capture the video frame-by-frame
+success, frame = capture.read()
+
+if not success:
+	print("Can't receive frame (stream end?). Exiting ...")
+	sys.exit(1)
+
+def capSaveWindow(event = 0):
+    global cancel, capBTN, saveBTN, discBTN, setTimerBTN
     cancel = True
 
-    button.place_forget()
-    button_timer.place_forget()
-    button1 = tk.Button(mainWindow, text="Save Image", command=saveAndReturn)
-    button2 = tk.Button(mainWindow, text="Discard", command=resume)
-    button1.place(anchor=tk.CENTER, relx=0.2, rely=0.9, width=150, height=50)
-    button2.place(anchor=tk.CENTER, relx=0.8, rely=0.9, width=150, height=50)
-    button1.focus()
+    capBTN.place_forget()
+    setTimerBTN.place_forget()
+    saveBTN = tk.Button(mainWindow, text="Save Image", command=saveAndReturn)
+    discBTN = tk.Button(mainWindow, text="Discard", command=resume)
+    saveBTN.place(anchor=tk.CENTER, relx=0.2, rely=0.9, width=150, height=50)
+    discBTN.place(anchor=tk.CENTER, relx=0.8, rely=0.9, width=150, height=50)
+    saveBTN.focus()
 
 def saveAndReturn(event = 0):
 	global img_counter
@@ -32,65 +49,50 @@ def saveAndReturn(event = 0):
 	resume()
 
 def resume(event = 0):
-    global button1, button2, button, lmain, cancel
+    global saveBTN, discBTN, capBTN, lmain, cancel
 
     cancel = False
 
-    button1.place_forget()
-    button2.place_forget()
+    saveBTN.place_forget()
+    discBTN.place_forget()
 
-    mainWindow.bind('<Return>', prompt_ok)
-    button.place(bordermode=tk.INSIDE, relx=0.85, rely=0.9, anchor=tk.CENTER, width=150, height=50)
-    button_timer.place(bordermode=tk.INSIDE, relx=0.85, rely=0.8, anchor=tk.CENTER, width=150, height=50)
+    mainWindow.bind('<Return>', capSaveWindow)
+    capBTN.place(bordermode=tk.INSIDE, relx=0.85, rely=0.9, anchor=tk.CENTER, width=150, height=50)
+    setTimerBTN.place(bordermode=tk.INSIDE, relx=0.85, rely=0.8, anchor=tk.CENTER, width=150, height=50)
     lmain.after(10, show_frame)
 
 def exitWindow(event=0):
 	mainWindow.quit()
 
 def timerWindow(event=0):
-    global cancel, button, button_timer, buttonT
+    global cancel, capBTN, setTimerBTN, timerBTN
     cancel = False
 
-    button.place_forget()
-    button_timer.place_forget()
-    buttonT = tk.Button(mainWindow, text="Timer Button", command=setTimer)
-    buttonT.place(anchor=tk.CENTER, relx=0.2, rely=0.9, width=150, height=50)
-    buttonT.focus()
+    capBTN.place_forget()
+    setTimerBTN.place_forget()
+    timerBTN = tk.Button(mainWindow, text="Timer Button", command=setTimer)
+    timerBTN.place(anchor=tk.CENTER, relx=0.2, rely=0.9, width=150, height=50)
+    timerBTN.focus()
 
 def setTimer(event=0):
     sys.exit(0)
-
-# define a video capture object
-capture = cv.VideoCapture(0)
-if not capture.isOpened():
-	print("Cannot open camera")
-	sys.exit(1)
-else:
-	capWidth = capture.get(3)
-	capHeight = capture.get(4)
-
-# Capture the video frame-by-frame
-success, frame = capture.read()
-if not success:
-	print("Can't receive frame (stream end?). Exiting ...")
-	sys.exit(1)
 
 mainWindow = tk.Tk()
 mainWindow.resizable(width=False, height=False)
 mainWindow.bind('<Escape>', lambda e: mainWindow.quit()) # .bind('<Escape>', ...) makes the esc key close the main window
 lmain = tk.Label(mainWindow, compound=tk.CENTER, anchor=tk.CENTER, relief=tk.RAISED)
-button = tk.Button(mainWindow, text="Capture", command=prompt_ok)
-button_Exit = tk.Button(mainWindow, text="Exit", command=exitWindow)
-button_timer = tk.Button(mainWindow, text="Set Timer", command=timerWindow)
+capBTN = tk.Button(mainWindow, text="Capture", command=capSaveWindow)
+exitBTN = tk.Button(mainWindow, text="Exit", command=exitWindow)
+setTimerBTN = tk.Button(mainWindow, text="Set Timer", command=timerWindow)
 
 lmain.pack()
-button.place(bordermode=tk.INSIDE, relx=0.85, rely=0.9, anchor=tk.CENTER, width=150, height=50)
-button.focus()
-button_Exit.place(bordermode=tk.INSIDE, relx=0.85, rely=0.1, anchor=tk.CENTER, width=150, height=50)
-button_timer.place(bordermode=tk.INSIDE, relx=0.85, rely=0.8, anchor=tk.CENTER, width=150, height=50)
+capBTN.place(bordermode=tk.INSIDE, relx=0.85, rely=0.9, anchor=tk.CENTER, width=150, height=50)
+capBTN.focus()
+exitBTN.place(bordermode=tk.INSIDE, relx=0.85, rely=0.1, anchor=tk.CENTER, width=150, height=50)
+setTimerBTN.place(bordermode=tk.INSIDE, relx=0.85, rely=0.8, anchor=tk.CENTER, width=150, height=50)
 
 def show_frame():
-    global cancel, prevImg, button
+    global cancel, prevImg, capBTN
 
     # capture.read() returns true/false for if the frame was captured, and then the frame itself
     # "_," ignores the true/false and just gets the frame
