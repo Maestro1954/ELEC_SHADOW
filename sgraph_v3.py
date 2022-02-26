@@ -123,6 +123,7 @@ def exitWindow(event=0):
 mainWindow = tk.Tk()
 mainWindow.resizable(width=False, height=False)
 mainWindow.bind('<Escape>', lambda e: mainWindow.quit()) # .bind('<Escape>', ...) makes the esc key close the main window
+lmain = tk.Label(mainWindow, compound=tk.CENTER, anchor=tk.CENTER, relief=tk.RAISED)
 capBTN = tk.Button(mainWindow, text="Capture", command=capSaveWindow)
 exitBTN = tk.Button(mainWindow, text="Exit", command=exitWindow)
 timerBTN = tk.Button(mainWindow, text="Set Timer", command=timerWindow)
