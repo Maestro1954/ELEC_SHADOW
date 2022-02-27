@@ -248,6 +248,7 @@ def timerString():
 
 def exitWindow(event=0):
 	mainWindow.quit()
+	# Add sys.exit(0) here to close window on Raspberry Pi
 
 mainWindow = tk.Tk()
 mainWindow.resizable(width=False, height=False)
