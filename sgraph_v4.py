@@ -251,6 +251,7 @@ def exitWindow(event=0):
 	# Add sys.exit(0) here to close window on Raspberry Pi
 
 mainWindow = tk.Tk()
+mainWindow.attributes('-fullscreen',True)
 mainWindow.resizable(width=False, height=False)
 mainWindow.bind('<Escape>', lambda e: mainWindow.quit()) # .bind('<Escape>', ...) makes the esc key close the main window
 lmain = tk.Label(mainWindow, compound=tk.CENTER, anchor=tk.CENTER, relief=tk.RAISED)
