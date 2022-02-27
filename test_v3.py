@@ -5,11 +5,12 @@ import tkinter as tk
 import os
 import sys
 from PIL import Image, ImageTk # pip install pillow
+import threading
+import time
 
 img_counter = 0
 numFrames = 0
 cancel = False
-
 
 # define a video capture object
 capture = cv.VideoCapture(0)
@@ -29,96 +30,82 @@ if not success:
 	sys.exit(1)
 
 def capSaveWindow(event = 0):
-    global cancel, capBTN, saveBTN, discBTN, timerBTN, multFrameBTN
+    global cancel, button0, button1, button2
     cancel = True
 
-    capBTN.place_forget()
-    timerBTN.place_forget()
-    multFrameBTN.place_forget()
-    saveBTN = tk.Button(mainWindow, text="Save Image", command=saveCapture)
-    discBTN = tk.Button(mainWindow, text="Discard", command=returnFromCapture)
-    saveBTN.place(anchor=tk.CENTER, relx=0.2, rely=0.9, width=150, height=50)
-    discBTN.place(anchor=tk.CENTER, relx=0.8, rely=0.9, width=150, height=50)
-    saveBTN.focus()
+    button1.place_forget()
+    button0.config(text="Save Image", command=saveCapture)
+    button2.config(text="Discard", command=returnFromCapSave)
+    button0.focus()
 
 def saveCapture(event = 0):
-    global img_counter, frame, saveBTN, discBTN
+    global img_counter, frame
 
     # Create screenshot variable with updating filename: /filepath/screenshot_{img_counter}.png
     screenshot = "C:/Users/adrie/Documents/Documents/UNC_Charlotte/Spring 2022/ECGR-4252 Senior Design II/Screenshots/screenshot_{}.png".format(img_counter)
     # Write current frame to screenshot variable
     cv.imwrite(screenshot, frame)
     img_counter += 1
-    returnFromCapture()
+    returnFromCapSave()
 
-def returnFromCapture(event = 0):
-    global discBTN, saveBTN
-    saveBTN.place_forget()
-    discBTN.place_forget()
-    resume()
+def returnFromCapSave(event = 0):
+    global button0, button1, button2, lmain, cancel
+    cancel = False
+    
+    mainWindow.bind('<Return>', capSaveWindow)
+    button0.config(text="Capture", command=capSaveWindow)
+    button1.place(bordermode=tk.INSIDE, relx=0.85, rely=0.8, anchor=tk.CENTER, width=150, height=50)
+    button2.config(text="Set Timer", command=timerWindow)
+    lmain.after(10, show_frame)
 
 def multiFrameWindow(event = 0):
-    global cancel, capBTN, timerBTN, multFrameBTN, numFrames, moreFramesBTN, setFramesBTN, lessFramesBTN
+    global cancel, button0, button2, button1, numFrames
     cancel = False
 
-    capBTN.place_forget()
-    timerBTN.place_forget()
-    multFrameBTN.place_forget()
     frameString = str(numFrames)
     frameText = "Frames: " + frameString
-    moreFramesBTN = tk.Button(mainWindow, text="MORE", command=addFrame)
-    setFramesBTN = tk.Button(mainWindow, text=frameText, command=multiFrameCapture)
-    lessFramesBTN = tk.Button(mainWindow, text="LESS", command=subtractFrame)
-    moreFramesBTN.place(anchor=tk.CENTER, relx=0.2, rely=0.7, width=150, height=50)
-    setFramesBTN.place(anchor=tk.CENTER, relx=0.2, rely=0.8, width=150, height=50)
-    lessFramesBTN.place(anchor=tk.CENTER, relx=0.2, rely=0.9, width=150, height=50)
-    setFramesBTN.focus()
+    button2.config(text="MORE", command=addFrame)
+    button1.config(text=frameText, command=multiCapThread)
+    button0.config(text="LESS", command=subtractFrame)
+    button1.focus()
+
+def multiCapThread(event = 0):
+    t1 = threading.Thread(target=multiFrameCapture)
+    t1.start()
 
 def multiFrameCapture(event = 0):
-    global frame, numFrames, img_counter, prevImg, moreFramesBTN, setFramesBTN, lessFramesBTN
+    global frame, numFrames, img_counter
 
     while numFrames > 0:
-        # Capture frame
         _, frame = capture.read()
-        cvimage = cv.cvtColor(frame, cv.COLOR_BGR2RGBA)
-        prevImg = Image.fromarray(cvimage)
-        imgtk = ImageTk.PhotoImage(image=prevImg)
-        lmain.imgtk = imgtk
-        lmain.configure(image=imgtk)
-        # Take a screenshot
+        # Create screenshot variable with updating filename: /filepath/screenshot_{img_counter}.png
         screenshot = "C:/Users/adrie/Documents/Documents/UNC_Charlotte/Spring 2022/ECGR-4252 Senior Design II/Screenshots/screenshot_{}.png".format(img_counter)
+        # Write current frame to screenshot variable
         cv.imwrite(screenshot, frame)
         img_counter += 1
         numFrames -= 1
-    moreFramesBTN.place_forget()
-    setFramesBTN.place_forget()
-    lessFramesBTN.place_forget()
-    resume()
-    sys.exit(0)
+        time.sleep(0.1)
+    button0.config(text="Capture", command=capSaveWindow)
+    button2.config(text="Set Timer", command=timerWindow)
+    button1.config(text="Multi-Frame", command=multiFrameWindow)
+
+# ______________TIMER__________________
 
 def timerWindow(event=0):
-    global cancel, capBTN, timerBTN, setTimerBTN, multFrameBTN
+    global cancel, button0, button2, setbutton2, button1
     cancel = False
 
-    capBTN.place_forget()
-    timerBTN.place_forget()
-    multFrameBTN.place_forget()
-    setTimerBTN = tk.Button(mainWindow, text="Timer Button", command=setTimer)
-    setTimerBTN.place(anchor=tk.CENTER, relx=0.2, rely=0.9, width=150, height=50)
-    setTimerBTN.focus()
+    button0.place_forget()
+    button2.place_forget()
+    button1.place_forget()
+    setbutton2 = tk.Button(mainWindow, text="Timer Button", command=setTimer)
+    setbutton2.place(anchor=tk.CENTER, relx=0.2, rely=0.9, width=150, height=50)
+    setbutton2.focus()
 
 def setTimer(event=0):
     sys.exit(0)
 
-def resume(event = 0):
-    global saveBTN, discBTN, capBTN, lmain, cancel
-    cancel = False
-    
-    mainWindow.bind('<Return>', capSaveWindow)
-    capBTN.place(bordermode=tk.INSIDE, relx=0.85, rely=0.9, anchor=tk.CENTER, width=150, height=50)
-    timerBTN.place(bordermode=tk.INSIDE, relx=0.85, rely=0.7, anchor=tk.CENTER, width=150, height=50)
-    multFrameBTN.place(bordermode=tk.INSIDE, relx=0.85, rely=0.8, anchor=tk.CENTER, width=150, height=50)
-    lmain.after(10, show_frame)
+#______________________________________
 
 def exitWindow(event=0):
 	mainWindow.quit()
@@ -127,17 +114,17 @@ mainWindow = tk.Tk()
 mainWindow.resizable(width=False, height=False)
 mainWindow.bind('<Escape>', lambda e: mainWindow.quit()) # .bind('<Escape>', ...) makes the esc key close the main window
 lmain = tk.Label(mainWindow, compound=tk.CENTER, anchor=tk.CENTER, relief=tk.RAISED)
-capBTN = tk.Button(mainWindow, text="Capture", command=capSaveWindow)
-exitBTN = tk.Button(mainWindow, text="Exit", command=exitWindow)
-timerBTN = tk.Button(mainWindow, text="Set Timer", command=timerWindow)
-multFrameBTN = tk.Button(mainWindow, text="Multi-Frame", command=multiFrameWindow)
+buttonX = tk.Button(mainWindow, text="Exit", command=exitWindow)
+button0 = tk.Button(mainWindow, text="Capture", command=capSaveWindow)
+button1 = tk.Button(mainWindow, text="Multi-Frame", command=multiFrameWindow)
+button2 = tk.Button(mainWindow, text="Set Timer", command=timerWindow)
 
 lmain.pack()
-capBTN.place(bordermode=tk.INSIDE, relx=0.85, rely=0.9, anchor=tk.CENTER, width=150, height=50)
-capBTN.focus()
-exitBTN.place(bordermode=tk.INSIDE, relx=0.85, rely=0.1, anchor=tk.CENTER, width=150, height=50)
-timerBTN.place(bordermode=tk.INSIDE, relx=0.85, rely=0.7, anchor=tk.CENTER, width=150, height=50)
-multFrameBTN.place(bordermode=tk.INSIDE, relx=0.85, rely=0.8, anchor=tk.CENTER, width=150, height=50)
+buttonX.place(bordermode=tk.INSIDE, relx=0.85, rely=0.1, anchor=tk.CENTER, width=150, height=50)
+button0.place(bordermode=tk.INSIDE, relx=0.85, rely=0.9, anchor=tk.CENTER, width=150, height=50)
+button0.focus()
+button2.place(bordermode=tk.INSIDE, relx=0.85, rely=0.7, anchor=tk.CENTER, width=150, height=50)
+button1.place(bordermode=tk.INSIDE, relx=0.85, rely=0.8, anchor=tk.CENTER, width=150, height=50)
 
 def addFrame():
     global numFrames
@@ -154,7 +141,7 @@ def subtractFrame():
     multiFrameWindow()
 
 def show_frame():
-    global cancel, prevImg, capBTN
+    global cancel, prevImg, button0
 
     # capture.read() returns true/false for if the frame was captured, and then the frame itself
     # "_," ignores the true/false and just gets the frame
