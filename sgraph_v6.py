@@ -103,11 +103,7 @@ def threadedSaveCap(event = 0):
             time_display.config(text=timerText)
         else:
             timerArmed = False
-    capThreadFinished()
-
-def capThreadFinished():
-    global button1
-
+    
     button1.place(bordermode=tk.INSIDE, y=20, relx=0.85, rely=0.8, anchor=tk.CENTER, width=120, height=20)
     capSaveWindow()
 
@@ -170,7 +166,6 @@ def multiCapTimerWindow(event = 0):
     frame_display.place_configure(bordermode=tk.INSIDE, y=20, relx=0.85, rely=0.8, anchor=tk.CENTER, width=120, height=20)
     button2.place_configure(bordermode=tk.INSIDE, y=30, relx=0.85, rely=0.7, anchor=tk.CENTER, width=120, height=20)
 
-
 # When timer is armed: thread allows live feed to work independently from 'while' loop in multiFrameCapture()
 def multiCapThread(event = 0):
     t1 = threading.Thread(target=multiFrameCapture)
@@ -228,10 +223,12 @@ def subtractFrame():
 ###############################################
 
 def timerWindow(event=0):
-    global cancel, button4, timeText, time_display
+    global cancel, button4, timeText, time_display, frame_display
     cancel = False
 
-    button3.place_forget()
+    if frame_display.winfo_ismapped():
+        frame_display.place_forget()
+
     timeText = timerString()
     time_display.config(text=timeText, font=('Ariel', 19), fg=eggshell)
     button3.config(text="SET TIMER", command=restoreMenu)
@@ -252,10 +249,12 @@ def timerWindow(event=0):
     else:
         button1.config(image=down_arrow, command=subtractMinutes)
         button0.config(image=down_arrow, command=subtractSeconds)
+    
+    if not button3.winfo_ismapped():
+        button3.place_configure(bordermode=tk.INSIDE, y=40, relx=0.85, rely=0.6, anchor=tk.CENTER, width=120, height=20) # SET TIMER
 
     button0.place_configure(bordermode=tk.INSIDE, y=15, relx=0.886, rely=0.85, anchor=tk.CENTER, width=25, height=22) # sub sec
     button1.place_configure(bordermode=tk.INSIDE, y=15, relx=0.811, rely=0.85, anchor=tk.CENTER, width=25, height=22) # sub min
-    button3.place_configure(bordermode=tk.INSIDE, y=40, relx=0.85, rely=0.6, anchor=tk.CENTER, width=120, height=20) # SET TIMER
     time_display.place_configure(bordermode=tk.INSIDE, y=33, relx=0.85, rely=0.75, anchor=tk.CENTER, width=120, height=30) # timeText
     button2.place_configure(bordermode=tk.INSIDE, y=51, relx=0.886, rely=0.65, anchor=tk.CENTER, width=25, height=22) # add sec
     button4.place_configure(bordermode=tk.INSIDE, y=51, relx=0.811, rely=0.65, anchor=tk.CENTER, width=25, height=22) # add min
@@ -327,7 +326,7 @@ def export(): # FIXME
         shutil.move(f, usbFilepath)  
 
 ###############################################
-############## HELPER FUNCTIONS ###############
+################ RESTORE MENU #################
 ###############################################
 
 def restoreMenu(event=0):
@@ -375,7 +374,6 @@ def restoreMenu(event=0):
         cameFromCap = False
         lmain.after(10, show_frame)
 
-
 def exitWindow(event=0):
 	mainWindow.quit()
     # Add sys.exit(0) here to close window on Raspberry Pi
@@ -388,14 +386,13 @@ mainWindow = tk.Tk()
 #mainWindow.geometry("500x200")
 #mainWindow.attributes('-fullscreen',True)
 mainWindow.resizable(width=False, height=False)
-mainWindow.bind('<Escape>', lambda e: mainWindow.quit()) # .bind('<Escape>', ...) makes the esc key close the main window
 lmain = tk.Label(mainWindow, compound=tk.CENTER, anchor=tk.CENTER, relief=tk.RAISED)
-buttonX = tk.Button(mainWindow, text="EXIT", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=exitWindow, borderwidth=0, activebackground=eggplant)
-button0 = tk.Button(mainWindow, text="CAPTURE", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=capSaveWindow, borderwidth=0, activebackground=eggplant)
-button1 = tk.Button(mainWindow, text="MULTI-FRAME", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=multiFrameWindow, borderwidth=0, activebackground=eggplant)
-button2 = tk.Button(mainWindow, text="SET TIMER", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=timerWindow, borderwidth=0, activebackground=eggplant)
-button3 = tk.Button(mainWindow, text="EXPORT", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=export, borderwidth=0, activebackground=eggplant)
-button4 = tk.Button(mainWindow, text="", fg=eggshell, bg=eggplant, command=addMinutes, borderwidth=0, activebackground=eggplant)
+buttonX = tk.Button(mainWindow, text="EXIT", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=exitWindow, borderwidth=0, highlightthickness=0, activebackground=eggplant)
+button0 = tk.Button(mainWindow, text="CAPTURE", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=capSaveWindow, borderwidth=0, highlightthickness=0, activebackground=eggplant)
+button1 = tk.Button(mainWindow, text="MULTI-FRAME", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=multiFrameWindow, borderwidth=0, highlightthickness=0, activebackground=eggplant)
+button2 = tk.Button(mainWindow, text="SET TIMER", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=timerWindow, borderwidth=0, highlightthickness=0, activebackground=eggplant)
+button3 = tk.Button(mainWindow, text="EXPORT", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=export, borderwidth=0, highlightthickness=0, activebackground=eggplant)
+button4 = tk.Button(mainWindow, text="", fg=eggshell, bg=eggplant, command=addMinutes, borderwidth=0, highlightthickness=0, activebackground=eggplant)
 
 up_arrow = tk.PhotoImage(file=(btn_png_filepath + '/up_arrow.png'))
 down_arrow = tk.PhotoImage(file=(btn_png_filepath + '/down_arrow.png'))
@@ -407,7 +404,6 @@ red_btn_window = tk.PhotoImage(file=(btn_png_filepath + '/red_btn_window.png'))
 orng_btnX = tk.PhotoImage(file=(btn_png_filepath + '/orng_btnX.png'))
 green_btnX = tk.PhotoImage(file=(btn_png_filepath + '/green_btnX.png'))
 red_btnX = tk.PhotoImage(file=(btn_png_filepath + '/red_btnX.png'))
-
 
 btn_window = tk.Label(mainWindow, image=orng_btn_window)
 btnX_window = tk.Label(mainWindow, image=orng_btnX)
