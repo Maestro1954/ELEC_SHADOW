@@ -9,9 +9,8 @@ import time
 from tkinter import filedialog
 from PIL import Image, ImageTk
 
-#warning message
-from tkinter import messagebox #Waninig message 
-
+#warning message 
+from tkinter import messagebox 
 
 # GLOBAL VARIABLES
 img_counter = 0
@@ -31,7 +30,7 @@ eggshell = '#f6f3c0'
 beans = '#532a07'
 eggplant = '#2a082a'
 # Filepaths
-btn_png_filepath = '/home/pi/ELEC_SHADOW/Button PNGs'
+btn_png_filepath = "D:/SeniorDesign/"
 screenshot_filepath = "/home/pi/ELEC_SHADOW/Screenshots"
 usbFilepath = "/home/pi/ELEC_SHADOW/USB File"
 
@@ -39,11 +38,11 @@ usbFilepath = "/home/pi/ELEC_SHADOW/USB File"
 capture = cv.VideoCapture(0)
 
 if not capture.isOpened():
-	print("Cannot open camera")
-	sys.exit(1)
+    print("Cannot open camera")
+    sys.exit(1)
 else:
-	capWidth = capture.get(3)
-	capHeight = capture.get(4)
+    capture.set(3, 1280)
+    capture.set(4, 720)
 
 # Capture the video frame-by-frame
 success, frame = capture.read()
@@ -129,7 +128,7 @@ def multiFrameWindow(event = 0):
     frame_display.config(text=frameTimeText, font=('Ariel', 19), fg=eggshell)
     button3.config(text="SET FRAMES", image="", command=multiCapTimerWindow)
     
-    if mfTimeCount == 600:
+    if mfTimeCount == 900:
         button2.config(image=dim_up_arrow, command=addSecondsMF)
         button4.config(image=dim_up_arrow, command=addMinutesMF)
     else:
@@ -229,7 +228,7 @@ def multiFrameCapture(event = 0):
 def addSecondsMF():
     global mfTimeCount
 
-    if mfTimeCount < 600:
+    if mfTimeCount < 900:
         mfTimeCount += 1
     multiFrameWindow()
 
@@ -243,10 +242,10 @@ def subtractSecondsMF():
 def addMinutesMF():
     global mfTimeCount
 
-    if mfTimeCount < 540:
+    if mfTimeCount < 840:
         mfTimeCount += 60
     else:
-        mfTimeCount = 600
+        mfTimeCount = 900
     multiFrameWindow()
 
 def subtractMinutesMF():
@@ -257,7 +256,7 @@ def subtractMinutesMF():
     elif mfTimeCount == 60:
         mfTimeCount = 0
     multiFrameWindow()
-        
+ 
 ###############################################
 ################### TIMER #####################
 ###############################################
@@ -272,8 +271,9 @@ def timerWindow(event=0):
     timeText = clockString(timerCount)
     time_display.config(text=timeText, font=('Ariel', 19), fg=eggshell)
     button3.config(text="SET TIMER", command=restoreMenu)
+    buttonX.config(text="RETURN", command=clearTimer)
 
-    if timerCount == 600:
+    if timerCount == 5940:
         button2.config(image=dim_up_arrow, command=addSecondsTimer)
         button4.config(image=dim_up_arrow, command=addMinutesTimer)
     else:
@@ -299,10 +299,17 @@ def timerWindow(event=0):
     button2.place_configure(bordermode=tk.INSIDE, y=51, relx=0.886, rely=0.65, anchor=tk.CENTER, width=25, height=22) # add sec
     button4.place_configure(bordermode=tk.INSIDE, y=51, relx=0.811, rely=0.65, anchor=tk.CENTER, width=25, height=22) # add min
 
+# So you can RETURN to the main menu without arming the timer by setting the clock to 00:00
+def clearTimer(event=0):
+    global timerCount
+
+    timerCount = 0
+    restoreMenu()
+
 def addSecondsTimer():
     global timerCount
 
-    if timerCount < 600:
+    if timerCount < 5940:
         timerCount += 1
     timerWindow()
 
@@ -316,10 +323,10 @@ def subtractSecondsTimer():
 def addMinutesTimer():
     global timerCount
 
-    if timerCount < 540:
+    if timerCount < 5880:
         timerCount += 60
     else:
-        timerCount = 600
+        timerCount = 5940
     timerWindow()
 
 def subtractMinutesTimer():
@@ -378,7 +385,7 @@ def restoreMenu(event=0):
     time_display.place_forget()
     frame_display.place_forget()
 
-    buttonX.configure(text="EXIT", font=('Ariel', 13), fg=eggshell, command=warningMessage)
+    buttonX.configure(text="EXIT", font=('Ariel', 13), fg=eggshell, command=exitWindow)
     button0.config(text="CAPTURE", image="", font=('Ariel', 13), fg=eggshell, command=capSaveWindow)
     button1.config(text="MULTI-FRAME", image="", font=('Ariel', 13), fg=eggshell, command=multiFrameWindow)
     button2.config(text="SET TIMER", image="", font=('Ariel', 13), fg=eggshell, command=timerWindow)
@@ -414,7 +421,19 @@ def restoreMenu(event=0):
 
 def exitWindow(event=0):
     mainWindow.quit()
-    sys.exit(0) #here to close window on Raspberry Pi
+    sys.exit(0) # here to close window on Raspberry Pi
+
+###############################################
+################ WARNING MESSAGE ##############
+###############################################
+def warningMessage(event = 0):
+    reply = messagebox.askyesno('confirmation', 'Exiting app before exporting images taken can result in data loss, are you sure? ')
+    if reply == True:
+        messagebox.showinfo('exiting.. ', 'exiting application')
+        mainWindow.destroy()
+        sys.exit(0) #added function from the old "exitWindow" function
+    else: 
+        messagebox.showinfo ('', 'Thanks for Staying')
 
 ###############################################
 ############ WIDGET INITIALIZATION ############
@@ -422,10 +441,10 @@ def exitWindow(event=0):
 
 mainWindow = tk.Tk()
 #mainWindow.geometry("640x480")
-#mainWindow.attributes('-fullscreen',True)
+mainWindow.attributes('-fullscreen',True)
 mainWindow.resizable(width=False, height=False)
 lmain = tk.Label(mainWindow, compound=tk.CENTER, anchor=tk.CENTER, relief=tk.RAISED)
-buttonX = tk.Button(mainWindow, text="EXIT", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=exitWindow, borderwidth=0, highlightthickness=0, activebackground=eggplant)
+buttonX = tk.Button(mainWindow, text="EXIT", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=warningMessage, borderwidth=0, highlightthickness=0, activebackground=eggplant)
 button0 = tk.Button(mainWindow, text="CAPTURE", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=capSaveWindow, borderwidth=0, highlightthickness=0, activebackground=eggplant)
 button1 = tk.Button(mainWindow, text="MULTI-FRAME", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=multiFrameWindow, borderwidth=0, highlightthickness=0, activebackground=eggplant)
 button2 = tk.Button(mainWindow, text="SET TIMER", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=timerWindow, borderwidth=0, highlightthickness=0, activebackground=eggplant)
@@ -465,10 +484,6 @@ button2.lift()
 button3.lift()
 button4.lift()
 
-def make_1080p():
-    capture.set(3, 1920)
-    capture.set(4, 1080)
-
 def rescale_frame(frame, percent):
     width = int(frame.shape[1] * percent/ 100)
     height = int(frame.shape[0] * percent/ 100)
@@ -480,8 +495,8 @@ def show_frame():
     global cancel, prevImg
 
     _, frame = capture.read()
-    #frame75 = rescale_frame(frame, percent=75)
-    cvimage = cv.cvtColor(frame, cv.COLOR_BGR2RGBA)
+    scaledFrame = rescale_frame(frame, percent=65)
+    cvimage = cv.cvtColor(scaledFrame, cv.COLOR_BGR2RGBA)
 
     prevImg = Image.fromarray(cvimage)
     imgtk = ImageTk.PhotoImage(image=prevImg)
@@ -490,16 +505,8 @@ def show_frame():
     #lmain.configure(bg='#041e41') # Electrolux blue
     if not cancel:
         lmain.after(10, show_frame)
-        
-def warningMessage(event = 0):
-    reply = messagebox.askyesno('confirmation', 'Exiting app before exporting images taken can result in data loss, are you sure? ')
-    if reply == True:
-        messagebox.showinfo('exiting.. ', 'exiting application')
-        mainWindow.destroy()
-        sys.exit(0) #added function from the old "exitWindow" function
-    else: 
-        messagebox.showinfo ('', 'Thanks for Staying')
 
-#make_1080p()
+
+
 show_frame()
 mainWindow.mainloop()
