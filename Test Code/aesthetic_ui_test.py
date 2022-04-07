@@ -117,9 +117,13 @@ def multiFrameWindow(event = 0):
     global cancel, time_display, frame_display, frameText, numFrames
     cancel = False
 
+    if timerArmed:
+        time_display.place_forget()
+
     frameTimeText = clockString(mfTimeCount)
     numFrames = mfTimeCount * 10
     frame_display.config(text=frameTimeText, font=('Ariel', 19), fg=eggshell)
+    button3.config(text="SET FRAMES", image="", command=multiCapTimerWindow)
     
     if mfTimeCount == 600:
         button2.config(image=dim_up_arrow, command=addSecondsMF)
@@ -137,12 +141,6 @@ def multiFrameWindow(event = 0):
     else:
         button1.config(image=down_arrow, command=subtractMinutesMF)
         button0.config(image=down_arrow, command=subtractSecondsMF)
-
-    if timerArmed:
-        time_display.place_forget()
-        button3.config(text="SET FRAMES", image="", command=multiCapTimerWindow)
-    else:
-        button3.config(text="CAPTURE", image="", command=multiCapThread)
 
     buttonX.config(text="RETURN", command=restoreMenu) # RETURN    
     button3.place_configure(bordermode=tk.INSIDE, y=40, relx=0.85, rely=0.6, anchor=tk.CENTER, width=120, height=20) # CAPTURE/SET FRAMES
@@ -163,21 +161,26 @@ def multiCapTimerWindow(event = 0):
     button4.place_forget()
     frame_display.place_forget()
 
-    time_display.config(text=timeText)
-    button0.config(text="START TIMER", image="", command=multiCapThread)
-    button2.config(text="SET TIMER", image="", command=timerWindow)
-
     frameText = str(numFrames)
 
-    if timerCount < 11:
-        frame_display.config(text="FRAMES: " + frameText, font=('Ariel', 13), fg=cherry)
-    else:
-        frame_display.config(text="FRAMES: " + frameText, font=('Ariel', 13), fg=mint)
+    if timerArmed:
+        time_display.config(text=timeText)
+        button0.config(text="START TIMER", image="", command=multiCapThread)
+        button2.config(text="SET TIMER", image="", command=timerWindow)
 
-    time_display.place(bordermode=tk.INSIDE, relx=0.85, y=40, rely=0.6, anchor=tk.CENTER, width=120, height=20) # 00:00
-    button0.place_configure(bordermode=tk.INSIDE, y=10, relx=0.85, rely=0.9, anchor=tk.CENTER, width=120, height=20) # START TIMER
+        if timerCount < 11:
+            frame_display.config(text="FRAMES: " + frameText, font=('Ariel', 13), fg=cherry)
+        else:
+            frame_display.config(text="FRAMES: " + frameText, font=('Ariel', 13), fg=mint)
+        
+        time_display.place(bordermode=tk.INSIDE, relx=0.85, y=40, rely=0.6, anchor=tk.CENTER, width=120, height=20) # 00:00
+        button2.place_configure(bordermode=tk.INSIDE, y=30, relx=0.85, rely=0.7, anchor=tk.CENTER, width=120, height=20) # SET TIMER
+    else:
+        frame_display.config(text="FRAMES: " + frameText, font=('Ariel', 13), fg=orange)
+        button0.config(text="CAPTURE", image="", command=multiCapThread)
+
+    button0.place_configure(bordermode=tk.INSIDE, y=10, relx=0.85, rely=0.9, anchor=tk.CENTER, width=120, height=20) # START TIMER/CAPTURE
     frame_display.place_configure(bordermode=tk.INSIDE, y=20, relx=0.85, rely=0.8, anchor=tk.CENTER, width=120, height=20) # Frames: 0000
-    button2.place_configure(bordermode=tk.INSIDE, y=30, relx=0.85, rely=0.7, anchor=tk.CENTER, width=120, height=20) # SET TIMER
 
 
 # When timer is armed: thread allows live feed to work independently from 'while' loop in multiFrameCapture()
@@ -189,9 +192,10 @@ def multiFrameCapture(event = 0):
     global frame, numFrames, mult_frame_counter, timerArmed, timerCount, timerText, btn_window, time_display, frame_display
 
     if timerArmed:
-        button0.config(fg=beans, command="")
         button2.config(fg=beans, command="")
-        buttonX.config(fg=beans, command="")
+
+    button0.config(fg=beans, command="")
+    buttonX.config(fg=beans, command="")
 
     while timerArmed:
         if timerCount > 0:
@@ -406,7 +410,7 @@ def restoreMenu(event=0):
 
 def exitWindow(event=0):
     mainWindow.quit()
-    sys.exit(0) # here to close window on Raspberry Pi
+    sys.exit(0) #here to close window on Raspberry Pi
 
 ###############################################
 ############ WIDGET INITIALIZATION ############
