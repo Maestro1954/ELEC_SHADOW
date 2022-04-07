@@ -6,11 +6,9 @@ import shutil
 import sys
 import threading
 import time
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 
-#warning message 
-from tkinter import messagebox 
 
 # GLOBAL VARIABLES
 img_counter = 0
@@ -30,7 +28,7 @@ eggshell = '#f6f3c0'
 beans = '#532a07'
 eggplant = '#2a082a'
 # Filepaths
-btn_png_filepath = "D:/SeniorDesign/"
+btn_png_filepath = '/home/pi/ELEC_SHADOW/Button PNGs'
 screenshot_filepath = "/home/pi/ELEC_SHADOW/Screenshots"
 usbFilepath = "/home/pi/ELEC_SHADOW/USB File"
 
@@ -64,6 +62,7 @@ def capSaveWindow(event = 0):
         cameFromCap = True
         button0.place_forget()
         button3.place_forget()
+        buttonX.config(fg=beans, command="")
         button1.config(text="SAVE IMAGE", fg=eggshell, command=saveCapture)
         button2.config(text="DISCARD", font=('Ariel', 13), fg=eggshell, command=restoreMenu)
         button2.place(bordermode=tk.INSIDE, y=30, relx=0.85, rely=0.7, anchor=tk.CENTER, width=120, height=20)
@@ -385,7 +384,7 @@ def restoreMenu(event=0):
     time_display.place_forget()
     frame_display.place_forget()
 
-    buttonX.configure(text="EXIT", font=('Ariel', 13), fg=eggshell, command=exitWindow)
+    buttonX.configure(text="EXIT", font=('Ariel', 13), fg=eggshell, command=warningMessage)
     button0.config(text="CAPTURE", image="", font=('Ariel', 13), fg=eggshell, command=capSaveWindow)
     button1.config(text="MULTI-FRAME", image="", font=('Ariel', 13), fg=eggshell, command=multiFrameWindow)
     button2.config(text="SET TIMER", image="", font=('Ariel', 13), fg=eggshell, command=timerWindow)
@@ -419,17 +418,15 @@ def restoreMenu(event=0):
         cameFromCap = False
         lmain.after(10, show_frame)
 
-def exitWindow(event=0):
-    mainWindow.quit()
-    sys.exit(0) # here to close window on Raspberry Pi
+
 
 ###############################################
 ################ WARNING MESSAGE ##############
 ###############################################
 def warningMessage(event = 0):
-    reply = messagebox.askyesno('confirmation', 'Exiting app before exporting images taken can result in data loss, are you sure? ')
+    reply = messagebox.askyesno('confirmation', 'All images stored on this device will be deleted upon exiting, do you want to proceed?')
     if reply == True:
-        messagebox.showinfo('exiting.. ', 'exiting application')
+        messagebox.showinfo('exiting.. ', 'Exiting application')
         mainWindow.destroy()
         sys.exit(0) #added function from the old "exitWindow" function
     else: 
@@ -440,9 +437,10 @@ def warningMessage(event = 0):
 ###############################################
 
 mainWindow = tk.Tk()
-#mainWindow.geometry("640x480")
-mainWindow.attributes('-fullscreen',True)
+mainWindow.geometry("800x480")
 mainWindow.resizable(width=False, height=False)
+mainWindow.config(bg='black')
+mainWindow.attributes('-fullscreen',True)
 lmain = tk.Label(mainWindow, compound=tk.CENTER, anchor=tk.CENTER, relief=tk.RAISED)
 buttonX = tk.Button(mainWindow, text="EXIT", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=warningMessage, borderwidth=0, highlightthickness=0, activebackground=eggplant)
 button0 = tk.Button(mainWindow, text="CAPTURE", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=capSaveWindow, borderwidth=0, highlightthickness=0, activebackground=eggplant)
@@ -505,8 +503,6 @@ def show_frame():
     #lmain.configure(bg='#041e41') # Electrolux blue
     if not cancel:
         lmain.after(10, show_frame)
-
-
 
 show_frame()
 mainWindow.mainloop()
