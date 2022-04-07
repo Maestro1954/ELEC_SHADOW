@@ -27,9 +27,9 @@ eggshell = '#f6f3c0'
 beans = '#532a07'
 eggplant = '#2a082a'
 # Filepaths
-btn_png_filepath = 'C:/Users/adrie/Documents/Documents/UNC_Charlotte/Spring 2022/ECGR-4252 Senior Design II/Button PNGs'
-screenshot_filepath = "C:/Users/adrie/Documents/Documents/UNC_Charlotte/Spring 2022/ECGR-4252 Senior Design II/Screenshots"
-usbFilepath = "C:/Users/adrie/Documents/Documents/UNC_Charlotte/Spring 2022/ECGR-4252 Senior Design II/USB File"
+btn_png_filepath = '/home/pi/ELEC_SHADOW/Button PNGs'
+screenshot_filepath = "/home/pi/ELEC_SHADOW/Screenshots"
+usbFilepath = "/home/pi/ELEC_SHADOW/USB File"
 
 # define a video capture object
 capture = cv.VideoCapture(0)
@@ -405,8 +405,8 @@ def restoreMenu(event=0):
         lmain.after(10, show_frame)
 
 def exitWindow(event=0):
-	mainWindow.quit()
-    # Add sys.exit(0) here to close window on Raspberry Pi
+    mainWindow.quit()
+    sys.exit(0) # here to close window on Raspberry Pi
 
 ###############################################
 ############ WIDGET INITIALIZATION ############
