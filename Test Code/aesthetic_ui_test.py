@@ -2,35 +2,34 @@ import numpy as np
 import cv2 as cv
 import tkinter as tk
 import os
+import shutil
 import sys
 import threading
 import time
-from PIL import Image, ImageTk # pip install pillow
+from tkinter import filedialog
+from PIL import Image, ImageTk
 
-
-#__________________GLOBAL VARIABLES__________________
-
+# GLOBAL VARIABLES
 img_counter = 0
+mult_frame_counter = 0
 numFrames = 0
 timerCount = 0
+mfTimeCount = 0
 cancel = False
 timerArmed = False
 cameFromCap = False
-cameFromMultFrame = False
-threadUsed = False
 # Colors
 orange = '#faa010'
 mint = '#46fcb5'
 cherry = '#f01148'
 bubblegum = '#f68b82'
 eggshell = '#f6f3c0'
-eggplant = '#2a082a'
 beans = '#532a07'
-spinach = '#07453A'
-black = '#000000'
-# please note the difference in '' and ""
+eggplant = '#2a082a'
+# Filepaths
 btn_png_filepath = 'C:/Users/adrie/Documents/Documents/UNC_Charlotte/Spring 2022/ECGR-4252 Senior Design II/Button PNGs'
 screenshot_filepath = "C:/Users/adrie/Documents/Documents/UNC_Charlotte/Spring 2022/ECGR-4252 Senior Design II/Screenshots"
+usbFilepath = "C:/Users/adrie/Documents/Documents/UNC_Charlotte/Spring 2022/ECGR-4252 Senior Design II/USB File"
 
 # define a video capture object
 capture = cv.VideoCapture(0)
@@ -49,250 +48,264 @@ if not success:
 	print("Can't receive frame (stream end?). Exiting ...")
 	sys.exit(1)
 
-#__________________CAPTURE__________________
+###############################################
+################### CAPTURE ###################
+###############################################
 
 def capSaveWindow(event = 0):
-    global cancel, button0, button1, button2, button3, cameFromCap
-    cameFromCap = True
+    global cancel, frame, cameFromCap
     
     if not timerArmed:
+        cancel = True
+        _, frame = capture.read()
+        cameFromCap = True
         button0.place_forget()
         button3.place_forget()
-        cancel = True
         button1.config(text="SAVE IMAGE", fg=eggshell, command=saveCapture)
-        button2.config(text="DISCARD", fg=eggshell, command=returnFromCapSave)
+        button2.config(text="DISCARD", font=('Ariel', 13), fg=eggshell, command=restoreMenu)
         button2.place(bordermode=tk.INSIDE, y=30, relx=0.85, rely=0.7, anchor=tk.CENTER, width=120, height=20)
     else:
         cancel = False
         button1.place_forget()
+        buttonX.config(text="RETURN", command=restoreMenu)
         button0.config(text="START TIMER", command=capThread)
 
 def saveCapture(event = 0):
-    global img_counter, frame
+    global img_counter, frame, cancel
 
-    _, frame = capture.read()
-    # Create screenshot variable with updating filename: /filepath/screenshot_{img_counter}.png
     screenshot = screenshot_filepath + "/screenshot_{}.png".format(img_counter)
-    # Write current frame to screenshot variable
     cv.imwrite(screenshot, frame)
     img_counter += 1
-    returnFromCapSave()
+    restoreMenu()
 
+# When timer is armed: thread allows live feed to work independently from 'while' loop in threadedSaveCap()
 def capThread(event=0):
-    global button0
+    global button0, button2
 
-    button0.place_forget()
+    button0.config(fg=beans, command="")
+    button2.config(fg=beans, command="")
     t3 = threading.Thread(target=threadedSaveCap)
     t3.start()
 
 def threadedSaveCap(event = 0):
-    global timerCount, timerArmed, img_counter, button3, cancel, btn_window
+    global timerCount, timerArmed, img_counter, cancel, btn_window, time_display
 
+    if timerArmed:
+        buttonX.config(fg=beans, command="")
+    
     while timerArmed:
         if timerCount > 0:
             timerCount -= 1
-            timerText = timerString()
+            timerText = clockString(timerCount)
             time.sleep(1)
             if timerCount < 11:
                 btn_window.config(image=red_btn_window)
-                button3.config(text=timerText, fg=cherry, command=timerRest)
-            else:
-                btn_window.config(image=green_btn_window)
-                button3.config(text=timerText, fg=mint, command=timerRest)  
+                btnX_window.config(image=red_btnX)
+                time_display.config(fg=cherry)
+            time_display.config(text=timerText)
         else:
             timerArmed = False
-    capThreadFinished()
-
-def capThreadFinished():
-    global button1, threadUsed
-    threadUsed = True
-
+    
     button1.place(bordermode=tk.INSIDE, y=20, relx=0.85, rely=0.8, anchor=tk.CENTER, width=120, height=20)
     capSaveWindow()
 
-def returnFromCapSave(event = 0):
-    global button0, button1, button2, button3, lmain, cancel, threadUsed, cameFromCap
-    cancel = False
-    cameFromCap = False
-    
-    mainWindow.bind('<Return>', capSaveWindow)
-    restoreBtnPos()
-    button0.place(bordermode=tk.INSIDE, y=10, relx=0.85, rely=0.9, anchor=tk.CENTER, width=120, height=20)
-    if threadUsed:
-        threadUsed = False
-        button1.config(text="MULTI-FRAME", command=multiFrameWindow)
-    button3.place(bordermode=tk.INSIDE, y=40, relx=0.85, rely=0.6, anchor=tk.CENTER, width=120, height=20)
-    button1.place(bordermode=tk.INSIDE, y=20, relx=0.85, rely=0.8, anchor=tk.CENTER, width=120, height=20)
-    lmain.after(10, show_frame)
-
-#__________________MULTI FRAME CAPTURE__________________
+###############################################
+########### MULTI FRAME CAPTURE ###############
+###############################################
 
 def multiFrameWindow(event = 0):
-    global cancel, button0, button2, button1, button3, numFrames, cameFromMultFrame
+    global cancel, time_display, frame_display, frameText, numFrames
     cancel = False
-    cameFromMultFrame = True
+
+    frameTimeText = clockString(mfTimeCount)
+    numFrames = mfTimeCount * 10
+    frame_display.config(text=frameTimeText, font=('Ariel', 19), fg=eggshell)
+    
+    if mfTimeCount == 600:
+        button2.config(image=dim_up_arrow, command=addSecondsMF)
+        button4.config(image=dim_up_arrow, command=addMinutesMF)
+    else:
+        button2.config(image=up_arrow, command=addSecondsMF)
+        button4.config(image=up_arrow, command=addMinutesMF)
+
+    if mfTimeCount == 0:
+        button1.config(image=dim_down_arrow, command=subtractMinutesMF)
+        button0.config(image=dim_down_arrow, command=subtractSecondsMF)
+    elif mfTimeCount < 60:
+        button1.config(image=dim_down_arrow, command=subtractMinutesMF)
+        button0.config(image=down_arrow, command=subtractSecondsMF)
+    else:
+        button1.config(image=down_arrow, command=subtractMinutesMF)
+        button0.config(image=down_arrow, command=subtractSecondsMF)
 
     if timerArmed:
-        button3.config(text=timeText, command=timerWindow)
-        button3.place(bordermode=tk.INSIDE, relx=0.85, y=40, rely=0.6, anchor=tk.CENTER, width=120, height=20)
+        time_display.place_forget()
+        button3.config(text="SET FRAMES", image="", command=multiCapTimerWindow)
     else:
-        button3.place_forget()
+        button3.config(text="CAPTURE", image="", command=multiCapThread)
 
-    frameString = str(numFrames)
-    frameText = "FRAMES: " + frameString
-    button1.config(text=frameText, font=('Ariel', 15), command=multiCapThread)
+    buttonX.config(text="RETURN", command=restoreMenu) # RETURN    
+    button3.place_configure(bordermode=tk.INSIDE, y=40, relx=0.85, rely=0.6, anchor=tk.CENTER, width=120, height=20) # CAPTURE/SET FRAMES
+    button0.place_configure(bordermode=tk.INSIDE, y=15, relx=0.886, rely=0.85, anchor=tk.CENTER, width=25, height=22) # sub sec
+    button1.place_configure(bordermode=tk.INSIDE, y=15, relx=0.811, rely=0.85, anchor=tk.CENTER, width=25, height=22) # sub min
+    frame_display.place_configure(bordermode=tk.INSIDE, y=33, relx=0.85, rely=0.75, anchor=tk.CENTER, width=120, height=30) # frameTimeText
+    button2.place_configure(bordermode=tk.INSIDE, y=51, relx=0.886, rely=0.65, anchor=tk.CENTER, width=25, height=22) # add sec
+    button4.place_configure(bordermode=tk.INSIDE, y=51, relx=0.811, rely=0.65, anchor=tk.CENTER, width=25, height=22) # add min
 
-    if numFrames == 10:
-        button2.config(image=dim_up_arrow, command=addFrame)
+def multiCapTimerWindow(event = 0):
+    global button0, button1, button2, button3, button4, cancel, frame_display, timerCount, frameText
+    cancel = False
+    
+    button0.place_forget()
+    button1.place_forget()
+    button2.place_forget()
+    button3.place_forget()
+    button4.place_forget()
+    frame_display.place_forget()
+
+    time_display.config(text=timeText)
+    button0.config(text="START TIMER", image="", command=multiCapThread)
+    button2.config(text="SET TIMER", image="", command=timerWindow)
+
+    frameText = str(numFrames)
+
+    if timerCount < 11:
+        frame_display.config(text="FRAMES: " + frameText, font=('Ariel', 13), fg=cherry)
     else:
-        button2.config(image=up_arrow, command=addFrame)
-    if numFrames == 0:
-        button0.config(image=dim_down_arrow, command=subtractFrame)
-    else:
-        button0.config(image=down_arrow, command=subtractFrame)
+        frame_display.config(text="FRAMES: " + frameText, font=('Ariel', 13), fg=mint)
 
-    if not timerArmed:
-        button0.place(bordermode=tk.INSIDE, y=15, relx=0.85, rely=0.84, anchor=tk.CENTER, width=100, height=30)
-        button1.place(bordermode=tk.INSIDE, y=25, relx=0.85, rely=0.75, anchor=tk.CENTER, width=120, height=28)
-        button2.place(bordermode=tk.INSIDE, y=35, relx=0.85, rely=0.66, anchor=tk.CENTER, width=100, height=30)
-    else:
-        button0.place(bordermode=tk.INSIDE, y=27, relx=0.85, rely=0.84, anchor=tk.CENTER, width=100, height=30)
-        button1.place(bordermode=tk.INSIDE, y=37, relx=0.85, rely=0.75, anchor=tk.CENTER, width=120, height=28)
-        button2.place(bordermode=tk.INSIDE, y=47, relx=0.85, rely=0.66, anchor=tk.CENTER, width=100, height=30)
+    time_display.place(bordermode=tk.INSIDE, relx=0.85, y=40, rely=0.6, anchor=tk.CENTER, width=120, height=20) # 00:00
+    button0.place_configure(bordermode=tk.INSIDE, y=10, relx=0.85, rely=0.9, anchor=tk.CENTER, width=120, height=20) # START TIMER
+    frame_display.place_configure(bordermode=tk.INSIDE, y=20, relx=0.85, rely=0.8, anchor=tk.CENTER, width=120, height=20) # Frames: 0000
+    button2.place_configure(bordermode=tk.INSIDE, y=30, relx=0.85, rely=0.7, anchor=tk.CENTER, width=120, height=20) # SET TIMER
 
+
+# When timer is armed: thread allows live feed to work independently from 'while' loop in multiFrameCapture()
 def multiCapThread(event = 0):
     t1 = threading.Thread(target=multiFrameCapture)
     t1.start()
 
 def multiFrameCapture(event = 0):
-    global frame, numFrames, img_counter, timerArmed, timerCount, timerText, button0, button1, button2, button3, btn_window
+    global frame, numFrames, mult_frame_counter, timerArmed, timerCount, timerText, btn_window, time_display, frame_display
 
+    if timerArmed:
+        button0.config(fg=beans, command="")
+        button2.config(fg=beans, command="")
+        buttonX.config(fg=beans, command="")
 
-    button2.config(image=dim_up_arrow, command="")
-    button1.config(command="")
-    button0.config(image=dim_down_arrow, command="")
     while timerArmed:
         if timerCount > 0:
             timerCount -= 1
-            timerText = timerString()
+            timerText = clockString(timerCount)
             time.sleep(1)
             if timerCount < 11:
                 btn_window.config(image=red_btn_window)
-                button3.config(text=timerText, fg=cherry, command=timerRest)
-            else:
-                button3.config(text=timerText, command=timerRest) 
+                btnX_window.config(image=red_btnX)
+                time_display.config(fg=cherry)
+                frame_display.config(fg=cherry)
+            time_display.config(text=timerText)
         else:
             timerArmed = False
-            button3.place_forget()
-            button3.config(text="ADD Seconds", command=addSeconds)
+            time_display.config(text="CAPTURE\nIN PROGRESS", font=('Ariel', 7))
 
     while numFrames > 0:
         _, frame = capture.read()
-        # Create screenshot variable with updating filename: /filepath/screenshot_{img_counter}.png
-        screenshot = screenshot_filepath + "/screenshot_{}.png".format(img_counter)
-        # Write current frame to screenshot variable
+        screenshot = screenshot_filepath + "/multcap_{}.png".format(mult_frame_counter)
         cv.imwrite(screenshot, frame)
-        img_counter += 1
+        mult_frame_counter += 1
         numFrames -= 1
         time.sleep(0.1)
-    
-    restoreBtnPos()
-    button3.place(bordermode=tk.INSIDE, y=40, relx=0.85, rely=0.6, anchor=tk.CENTER, width=120, height=20)
+
+    restoreMenu()
+
+def addSecondsMF():
+    global mfTimeCount
+
+    if mfTimeCount < 600:
+        mfTimeCount += 1
+    multiFrameWindow()
+
+def subtractSecondsMF():
+    global mfTimeCount
+
+    if mfTimeCount > 0:
+        mfTimeCount -= 1
+    multiFrameWindow()
+
+def addMinutesMF():
+    global mfTimeCount
+
+    if mfTimeCount < 540:
+        mfTimeCount += 60
+    else:
+        mfTimeCount = 600
+    multiFrameWindow()
+
+def subtractMinutesMF():
+    global mfTimeCount
+
+    if mfTimeCount > 60:
+        mfTimeCount -= 60
+    elif mfTimeCount == 60:
+        mfTimeCount = 0
+    multiFrameWindow()
         
-# ______________TIMER__________________
+###############################################
+################### TIMER #####################
+###############################################
 
 def timerWindow(event=0):
-    global cancel, button0, button1, button2, button3, button4, timeText, cameFromCap
+    global cancel, button4, timeText, time_display, frame_display
     cancel = False
 
-    timeText = timerString()
-    button2.config(text=timeText, image="", font=('Ariel', 19), fg=eggshell, command=setTimerThread)
+    if frame_display.winfo_ismapped():
+        frame_display.place_forget()
+
+    timeText = clockString(timerCount)
+    time_display.config(text=timeText, font=('Ariel', 19), fg=eggshell)
+    button3.config(text="SET TIMER", command=restoreMenu)
 
     if timerCount == 600:
-        button3.config(image=dim_up_arrow, command=addSeconds)
-        button4.config(image=dim_up_arrow)
+        button2.config(image=dim_up_arrow, command=addSecondsTimer)
+        button4.config(image=dim_up_arrow, command=addMinutesTimer)
     else:
-        button3.config(image=up_arrow, command=addSeconds)
-        button4.config(image=up_arrow)
+        button2.config(image=up_arrow, command=addSecondsTimer)
+        button4.config(image=up_arrow, command=addMinutesTimer)
+
     if timerCount == 0:
-        button1.config(image=dim_down_arrow, command=subtractMinutes)
-        button0.config(image=dim_down_arrow, command=subtractSeconds)
+        button1.config(image=dim_down_arrow, command=subtractMinutesTimer)
+        button0.config(image=dim_down_arrow, command=subtractSecondsTimer)
     elif timerCount < 60:
-        button1.config(image=dim_down_arrow, command=subtractMinutes)
-        button0.config(image=down_arrow, command=subtractSeconds)
+        button1.config(image=dim_down_arrow, command=subtractMinutesTimer)
+        button0.config(image=down_arrow, command=subtractSecondsTimer)
     else:
-        button1.config(image=down_arrow, command=subtractMinutes)
-        button0.config(image=down_arrow, command=subtractSeconds)
+        button1.config(image=down_arrow, command=subtractMinutesTimer)
+        button0.config(image=down_arrow, command=subtractSecondsTimer)
     
+    if not button3.winfo_ismapped():
+        button3.place_configure(bordermode=tk.INSIDE, y=40, relx=0.85, rely=0.6, anchor=tk.CENTER, width=120, height=20) # SET TIMER
 
-    button0.place_configure(y=15, relx=0.894, rely=0.85, width=35, height=30)
-    if cameFromCap:
-        button1.place_configure(y=0, relx=0.78, rely=0.85, width=35, height=30)
-        cameFromCap = False
-    else:
-        button1.place_configure(y=15, relx=0.806, rely=0.85, width=35, height=30)
-    if timerArmed:
-        button2.place(bordermode=tk.INSIDE, y=25, relx=0.85, rely=0.75, anchor=tk.CENTER, width=120, height=30)
-    else:
-        button2.place_configure(y=25, rely=0.75, height=30)
-    button3.place(bordermode=tk.INSIDE, relx=0.894, rely=0.64, anchor=tk.CENTER, width=35, height=30)
-    button4.place(bordermode=tk.INSIDE, y=50, relx=0.806, rely=0.62, anchor=tk.CENTER, width=35, height=30)
+    button0.place_configure(bordermode=tk.INSIDE, y=15, relx=0.886, rely=0.85, anchor=tk.CENTER, width=25, height=22) # sub sec
+    button1.place_configure(bordermode=tk.INSIDE, y=15, relx=0.811, rely=0.85, anchor=tk.CENTER, width=25, height=22) # sub min
+    time_display.place_configure(bordermode=tk.INSIDE, y=33, relx=0.85, rely=0.75, anchor=tk.CENTER, width=120, height=30) # timeText
+    button2.place_configure(bordermode=tk.INSIDE, y=51, relx=0.886, rely=0.65, anchor=tk.CENTER, width=25, height=22) # add sec
+    button4.place_configure(bordermode=tk.INSIDE, y=51, relx=0.811, rely=0.65, anchor=tk.CENTER, width=25, height=22) # add min
 
-    button4.lift()
-
-def timerRest():
-    global timerCount, numFrames
-    timerCount = 0
-    numFrames = 0
-
-
-def setTimerThread(event=0):
-    t2 = threading.Thread(target=setTimer)
-    t2.start()
-
-def setTimer(event=0):
-    global button4, button3, button2, button1, button0, timeText, cancel, timerArmed, lmain, timerCount
-    cancel = False
-    
-    button4.place_forget()
-    if timerCount != 0:
-        timerArmed = True
-        mainWindow.bind('<Return>', timerWindow)
-        btn_window.config(image=green_btn_window)
-        button3.config(text=timeText, font=('Ariel', 19), image="", fg=mint, command=timerWindow)
-    else:
-        timerArmed = False
-    restoreBtnPos()
-
-def addFrame():
-    global numFrames
-
-    if numFrames < 10:
-        numFrames += 1
-    multiFrameWindow()
-
-def subtractFrame():
-    global numFrames
-
-    if numFrames > 0:
-        numFrames -= 1
-    multiFrameWindow()
-
-def addSeconds():
+def addSecondsTimer():
     global timerCount
 
     if timerCount < 600:
         timerCount += 1
     timerWindow()
 
-def subtractSeconds():
+def subtractSecondsTimer():
     global timerCount
 
     if timerCount > 0:
         timerCount -= 1
     timerWindow()
 
-def addMinutes():
+def addMinutesTimer():
     global timerCount
 
     if timerCount < 540:
@@ -301,7 +314,7 @@ def addMinutes():
         timerCount = 600
     timerWindow()
 
-def subtractMinutes():
+def subtractMinutesTimer():
     global timerCount
 
     if timerCount > 60:
@@ -310,12 +323,12 @@ def subtractMinutes():
         timerCount = 0
     timerWindow()
 
-def timerString():
-    global timerCount
+# Creates string of clock time "00:00" for clock display
+def clockString(timeCount):
 
-    floatMins = timerCount/60
+    floatMins = timeCount/60
     minutes = int(floatMins)
-    seconds = timerCount - (minutes * 60)
+    seconds = timeCount - (minutes * 60)
 
     if minutes < 10:
         minString = "0"
@@ -329,44 +342,87 @@ def timerString():
         secString = str(seconds)
 
     return minString + " : " + secString
-#______________________________________
 
-def restoreBtnPos(event=0):
-    global button0, button1, button2, button3, timerArmed, btn_window, cameFromMultFrame
+###############################################
+################### EXPORT ####################
+###############################################
 
+def export(): # FIXME
+    global usbFilepath
+
+    mainWindow.filename = filedialog.askopenfilenames(initialdir=screenshot_filepath, title="Select a File", filetypes=(("png files","*.png"),("all files","*.*")))
+    for f in mainWindow.filename:
+        shutil.move(f, usbFilepath)  
+
+###############################################
+################ RESTORE MENU #################
+###############################################
+
+def restoreMenu(event=0):
+    global btn_window, time_display, frame_display, cancel, timerArmed, cameFromCap, timerCount, numFrames, mfTimeCount
+    cancel=False
+    
+    button0.place_forget()
+    button1.place_forget()
+    button2.place_forget()
+    button3.place_forget()
+    button4.place_forget()
+    time_display.place_forget()
+    frame_display.place_forget()
+
+    buttonX.configure(text="EXIT", font=('Ariel', 13), fg=eggshell, command=exitWindow)
     button0.config(text="CAPTURE", image="", font=('Ariel', 13), fg=eggshell, command=capSaveWindow)
-    button1.config(text="MULTI-FRAME", image="", font=('Ariel', 13), fg=eggshell, command=multiFrameWindow) 
-    if cameFromMultFrame or (not timerArmed):
-        cameFromMultFrame = False
+    button1.config(text="MULTI-FRAME", image="", font=('Ariel', 13), fg=eggshell, command=multiFrameWindow)
+    button2.config(text="SET TIMER", image="", font=('Ariel', 13), fg=eggshell, command=timerWindow)
+
+    numFrames = 0
+    mfTimeCount = 0
+
+    if timerCount == 0:
+        timerArmed = False
         btn_window.config(image=orng_btn_window)
-        button2.config(text="SET TIMER", image="", font=('Ariel', 13), fg=eggshell, command=timerWindow)
-        button3.config(text="EXPORT", image="", font=('Ariel', 13), fg=eggshell, command=exitWindow)
-    if timerArmed:
-        button2.place_forget()
+        btnX_window.config(image=orng_btnX)
+        button3.config(text="EXPORT", image="", font=('Ariel', 13), fg=eggshell, command=export)
+        button3.place_configure(bordermode=tk.INSIDE, y=40, relx=0.85, rely=0.6, anchor=tk.CENTER, width=120, height=20)
     else:
-        button2.place_configure(bordermode=tk.INSIDE, y=30, relx=0.85, rely=0.7, anchor=tk.CENTER, width=120, height=20)
+        timerArmed = True
+        if timerCount < 11:
+            btn_window.config(image=red_btn_window)
+            btnX_window.config(image=red_btnX)
+            time_display.config(text=timeText, font=('Ariel', 19), fg=cherry)
+        else:
+            btn_window.config(image=green_btn_window)
+            btnX_window.config(image=green_btnX)
+            time_display.config(text=timeText, font=('Ariel', 19), fg=mint)
+        time_display.place_configure(bordermode=tk.INSIDE, y=40, relx=0.85, rely=0.6, anchor=tk.CENTER, width=120, height=20)
+
     button0.place_configure(bordermode=tk.INSIDE, y=10, relx=0.85, rely=0.9, anchor=tk.CENTER, width=120, height=20)
     button1.place_configure(bordermode=tk.INSIDE, y=20, relx=0.85, rely=0.8, anchor=tk.CENTER, width=120, height=20)
-    button3.place_configure(bordermode=tk.INSIDE, y=40, relx=0.85, rely=0.6, anchor=tk.CENTER, width=120, height=20)
+    button2.place_configure(bordermode=tk.INSIDE, y=30, relx=0.85, rely=0.7, anchor=tk.CENTER, width=120, height=20)
 
-    
+    if cameFromCap:
+        cameFromCap = False
+        lmain.after(10, show_frame)
 
 def exitWindow(event=0):
 	mainWindow.quit()
     # Add sys.exit(0) here to close window on Raspberry Pi
 
+###############################################
+############ WIDGET INITIALIZATION ############
+###############################################
+
 mainWindow = tk.Tk()
-#mainWindow.geometry("500x200")
+#mainWindow.geometry("640x480")
 #mainWindow.attributes('-fullscreen',True)
 mainWindow.resizable(width=False, height=False)
-mainWindow.bind('<Escape>', lambda e: mainWindow.quit()) # .bind('<Escape>', ...) makes the esc key close the main window
 lmain = tk.Label(mainWindow, compound=tk.CENTER, anchor=tk.CENTER, relief=tk.RAISED)
-buttonX = tk.Button(mainWindow, text="Exit", command=exitWindow, borderwidth=0)
-button0 = tk.Button(mainWindow, text="CAPTURE", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=capSaveWindow, borderwidth=0, activebackground=eggplant)
-button1 = tk.Button(mainWindow, text="MULTI-FRAME", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=multiFrameWindow, borderwidth=0, activebackground=eggplant)
-button2 = tk.Button(mainWindow, text="SET TIMER", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=timerWindow, borderwidth=0, activebackground=eggplant)
-button3 = tk.Button(mainWindow, text="EXPORT", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=exitWindow, borderwidth=0, activebackground=eggplant)
-button4 = tk.Button(mainWindow, text="ADD Minutes", bg=eggplant, command=addMinutes, borderwidth=0, activebackground=eggplant)
+buttonX = tk.Button(mainWindow, text="EXIT", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=exitWindow, borderwidth=0, highlightthickness=0, activebackground=eggplant)
+button0 = tk.Button(mainWindow, text="CAPTURE", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=capSaveWindow, borderwidth=0, highlightthickness=0, activebackground=eggplant)
+button1 = tk.Button(mainWindow, text="MULTI-FRAME", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=multiFrameWindow, borderwidth=0, highlightthickness=0, activebackground=eggplant)
+button2 = tk.Button(mainWindow, text="SET TIMER", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=timerWindow, borderwidth=0, highlightthickness=0, activebackground=eggplant)
+button3 = tk.Button(mainWindow, text="EXPORT", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=export, borderwidth=0, highlightthickness=0, activebackground=eggplant)
+button4 = tk.Button(mainWindow, text="", fg=eggshell, bg=eggplant, command="", borderwidth=0, highlightthickness=0, activebackground=eggplant)
 
 up_arrow = tk.PhotoImage(file=(btn_png_filepath + '/up_arrow.png'))
 down_arrow = tk.PhotoImage(file=(btn_png_filepath + '/down_arrow.png'))
@@ -375,37 +431,58 @@ dim_down_arrow = tk.PhotoImage(file=(btn_png_filepath + '/dim_down_arrow.png'))
 orng_btn_window = tk.PhotoImage(file=(btn_png_filepath + '/orng_btn_window.png'))
 green_btn_window = tk.PhotoImage(file=(btn_png_filepath + '/green_btn_window.png'))
 red_btn_window = tk.PhotoImage(file=(btn_png_filepath + '/red_btn_window.png'))
+orng_btnX = tk.PhotoImage(file=(btn_png_filepath + '/orng_btnX.png'))
+green_btnX = tk.PhotoImage(file=(btn_png_filepath + '/green_btnX.png'))
+red_btnX = tk.PhotoImage(file=(btn_png_filepath + '/red_btnX.png'))
 
 btn_window = tk.Label(mainWindow, image=orng_btn_window)
+btnX_window = tk.Label(mainWindow, image=orng_btnX)
+time_display = tk.Label(mainWindow, fg=eggshell, bg=eggplant)
+frame_display = tk.Label(mainWindow, fg=eggshell, bg=eggplant)
 btn_window.place(bordermode=tk.INSIDE, y=1, relx=0.85, rely=0.8, anchor=tk.CENTER, width=150, height=164)
+btnX_window.place(bordermode=tk.INSIDE, relx=0.85, rely=0.1, anchor=tk.CENTER, width=150, height=49)
 
+#lmain.config(width=640, height=480)
 lmain.pack()
-buttonX.place(bordermode=tk.INSIDE, relx=0.85, rely=0.1, anchor=tk.CENTER, width=150, height=50)
+buttonX.place(bordermode=tk.INSIDE, relx=0.85, rely=0.1, anchor=tk.CENTER, width=120, height=20)
 button0.place(bordermode=tk.INSIDE, y=10, relx=0.85, rely=0.9, anchor=tk.CENTER, width=120, height=20)
 button1.place(bordermode=tk.INSIDE, y=20, relx=0.85, rely=0.8, anchor=tk.CENTER, width=120, height=20)
 button2.place(bordermode=tk.INSIDE, y=30, relx=0.85, rely=0.7, anchor=tk.CENTER, width=120, height=20)
 button3.place(bordermode=tk.INSIDE, y=40, relx=0.85, rely=0.6, anchor=tk.CENTER, width=120, height=20)
 
+buttonX.lift()
 button0.lift()
 button1.lift()
 button2.lift()
 button3.lift()
+button4.lift()
 
+def make_1080p():
+    capture.set(3, 1920)
+    capture.set(4, 1080)
+
+def rescale_frame(frame, percent):
+    width = int(frame.shape[1] * percent/ 100)
+    height = int(frame.shape[0] * percent/ 100)
+    dim = (width, height)
+    return cv.resize(frame, dim, interpolation =cv.INTER_AREA)
+
+# Update live feed frame
 def show_frame():
-    global cancel, prevImg, button0
+    global cancel, prevImg
 
-    # capture.read() returns true/false for if the frame was captured, and then the frame itself
-    # "_," ignores the true/false and just gets the frame
     _, frame = capture.read()
-    # convert between RGB and BGR color spaces (with or without alpha channel)
+    #frame75 = rescale_frame(frame, percent=75)
     cvimage = cv.cvtColor(frame, cv.COLOR_BGR2RGBA)
 
     prevImg = Image.fromarray(cvimage)
     imgtk = ImageTk.PhotoImage(image=prevImg)
     lmain.imgtk = imgtk
     lmain.configure(image=imgtk)
+    #lmain.configure(bg='#041e41') # Electrolux blue
     if not cancel:
         lmain.after(10, show_frame)
 
+#make_1080p()
 show_frame()
 mainWindow.mainloop()
