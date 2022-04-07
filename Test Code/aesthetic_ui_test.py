@@ -425,9 +425,10 @@ def exitWindow(event=0):
 ###############################################
 
 mainWindow = tk.Tk()
-#mainWindow.geometry("640x480")
-mainWindow.attributes('-fullscreen',True)
+mainWindow.geometry("800x480")
 mainWindow.resizable(width=False, height=False)
+mainWindow.config(bg='black')
+mainWindow.attributes('-fullscreen',True)
 lmain = tk.Label(mainWindow, compound=tk.CENTER, anchor=tk.CENTER, relief=tk.RAISED)
 buttonX = tk.Button(mainWindow, text="EXIT", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=exitWindow, borderwidth=0, highlightthickness=0, activebackground=eggplant)
 button0 = tk.Button(mainWindow, text="CAPTURE", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=capSaveWindow, borderwidth=0, highlightthickness=0, activebackground=eggplant)
