@@ -210,7 +210,8 @@ def multiFrameCapture(event = 0):
             time_display.config(text=timerText)
         else:
             timerArmed = False
-            time_display.config(text="CAPTURE\nIN PROGRESS", font=('Ariel', 7))
+            time_display.config(text="CAPTURE\nIN PROGRESS", font=('Ariel', 10))
+	    time_display.place_configure(y=45, height=30)
 
     while numFrames > 0:
         _, frame = capture.read()
