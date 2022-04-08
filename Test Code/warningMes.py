@@ -227,6 +227,17 @@ def multiFrameCapture(event = 0):
 
     restoreMenu()
 
+def createMultiFrameFolder():
+    global mult_frame_session
+    
+    directory = "Multi-Frame Captures {}".format(mult_frame_session)
+    parent_dir = screenshot_filepath
+    path = os.path.join(parent_dir, directory)
+    os.mkdir(path)
+    mult_frame_session += 1
+
+    return path
+
 def addSecondsMF():
     global mfTimeCount
 
