@@ -13,6 +13,7 @@ from PIL import Image, ImageTk
 # GLOBAL VARIABLES
 img_counter = 0
 mult_frame_counter = 0
+mult_frame_session = 0
 numFrames = 0
 timerCount = 0
 mfTimeCount = 0
@@ -193,6 +194,8 @@ def multiCapThread(event = 0):
 def multiFrameCapture(event = 0):
     global frame, numFrames, mult_frame_counter, timerArmed, timerCount, timerText, btn_window, time_display, frame_display
 
+    mult_frame_folderpath = createMultiFrameFolder()
+
     if timerArmed:
         button2.config(fg=beans, command="")
 
@@ -216,7 +219,7 @@ def multiFrameCapture(event = 0):
 
     while numFrames > 0:
         _, frame = capture.read()
-        screenshot = screenshot_filepath + "/multcap_{}.png".format(mult_frame_counter)
+        screenshot = mult_frame_folderpath + "/frame_capture_{}.png".format(mult_frame_counter)
         cv.imwrite(screenshot, frame)
         mult_frame_counter += 1
         numFrames -= 1
@@ -373,7 +376,7 @@ def export(): # FIXME
 ###############################################
 
 def restoreMenu(event=0):
-    global btn_window, time_display, frame_display, cancel, timerArmed, cameFromCap, timerCount, numFrames, mfTimeCount
+    global btn_window, time_display, frame_display, cancel, timerArmed, cameFromCap, timerCount, numFrames, mfTimeCount, mult_frame_counter
     cancel=False
     
     button0.place_forget()
@@ -391,6 +394,7 @@ def restoreMenu(event=0):
 
     numFrames = 0
     mfTimeCount = 0
+    mult_frame_counter = 0
 
     if timerCount == 0:
         timerArmed = False
