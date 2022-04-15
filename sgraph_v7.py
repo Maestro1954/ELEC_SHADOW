@@ -397,7 +397,7 @@ def export():
             file_path = os.path.join(path, file_name)
             shutil.move(file_path, usb_path)
         
-        messagebox.showinfo('EXPORT', 'All capturs and multi-frame capture folders have been exported.')
+        messagebox.showinfo('EXPORT', 'All stored images have been exported.')
         usbDetected = False
     else:
         messagebox.showinfo('ERROR!', 'No USB storage device detected.')
