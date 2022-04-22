@@ -8,6 +8,7 @@ import threading
 import time
 from tkinter import messagebox
 from PIL import Image, ImageTk
+from subprocess import call
 
 
 # GLOBAL VARIABLES
@@ -421,6 +422,7 @@ def warningMessage(event = 0):
         eraseStoredImages()
         capture.release()
         root.destroy()
+        call("sudo nohup shutdown -h now", shell=True)
         sys.exit(0) # added function from the old "exitWindow" function
     else: 
         schedule_frame = True
@@ -529,7 +531,7 @@ root = tk.Tk()
 root.geometry("800x480")
 root.resizable(width=False, height=False)
 root.config(bg='black')
-#root.attributes('-fullscreen',True)
+root.attributes('-fullscreen',True)
 live_feed = tk.Label(root, compound=tk.CENTER, anchor=tk.CENTER, relief=tk.RAISED)
 
 
