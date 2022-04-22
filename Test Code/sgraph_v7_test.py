@@ -31,12 +31,9 @@ beans = '#532a07'
 eggplant = '#2a082a'
 elec_blue = '#041e41'
 # Filepaths
-btn_png_filepath = 'C:/Users/adrie/Documents/Documents/UNC_Charlotte/Spring 2022/ECGR-4252 Senior Design II/Button PNGs'
-screenshot_filepath = "C:/Users/adrie/Documents/Documents/UNC_Charlotte/Spring 2022/ECGR-4252 Senior Design II/Screenshots"
-usb_location = "C:/Users/adrie/Documents/Documents/UNC_Charlotte/Spring 2022/ECGR-4252 Senior Design II/USB File"
-#btn_png_filepath = '/home/pi/ELEC_SHADOW/Button PNGs'
-#screenshot_filepath = "/home/pi/ELEC_SHADOW/Screenshots"
-#usb_location = "/media/pi"
+btn_png_filepath = '/home/pi/ELEC_SHADOW/Button PNGs'
+screenshot_filepath = "/home/pi/ELEC_SHADOW/Screenshots"
+usb_location = "/media/pi"
 
 # define a video capture object
 capture = cv.VideoCapture(0)
