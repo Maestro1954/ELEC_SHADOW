@@ -147,7 +147,7 @@ def multiFrameWindow(event = 0):
     if mfTimeCount == 0:
         button1.config(image=dim_down_arrow, command=subtractMinutesMF)
         button0.config(image=dim_down_arrow, command=subtractSecondsMF)
-    if mfTimeCount < 60:
+    elif mfTimeCount < 60:
         button1.config(image=dim_down_arrow, command=subtractMinutesMF)
         button0.config(image=down_arrow, command=subtractSecondsMF)
     else:
@@ -404,8 +404,11 @@ def export():
         usbDetected = False
     else:
         messagebox.showinfo('ERROR!', 'No USB storage device detected.')
-    
     restoreMenu()
+
+def exportThread(event = 0):
+    t2 = threading.Thread(target=export)
+    t2.start()
 
 ###############################################
 ################ WARNING MESSAGE ##############
@@ -455,7 +458,7 @@ def restoreMenu(event=0):
         timerArmed = False
         btn_window.config(image=orng_btn_window)
         btnX_window.config(image=orng_btnX)
-        button3.config(text="EXPORT", image="", font=('Ariel', 13), fg=eggshell, command=export)
+        button3.config(text="EXPORT", image="", font=('Ariel', 13), fg=eggshell, command=exportThread)
         button3.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.164, anchor=tk.CENTER, width=120, height=20)
     else:
         timerArmed = True
@@ -560,7 +563,7 @@ button1 = tk.Button(btn_menu, text="MULTI-FRAME", font=('Ariel', 13), bg=eggplan
                     borderwidth=0, highlightthickness=0, activebackground=eggplant, activeforeground=eggshell)
 button2 = tk.Button(btn_menu, text="SET TIMER", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=timerWindow, 
                     borderwidth=0, highlightthickness=0, activebackground=eggplant, activeforeground=eggshell)
-button3 = tk.Button(btn_menu, text="EXPORT", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=export, 
+button3 = tk.Button(btn_menu, text="EXPORT", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=exportThread, 
                     borderwidth=0, highlightthickness=0, activebackground=eggplant)
 button4 = tk.Button(btn_menu, bg=eggplant, command="", borderwidth=0, highlightthickness=0, activebackground=eggplant)
 
