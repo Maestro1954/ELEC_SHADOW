@@ -483,12 +483,12 @@ def standByMenu(exporting):
 
 # Allows the live-feed to work independently from any 'while' loops in the program that need to run
 def threader(event=0):
-    if bottom_label.winfo_ismapped() == False:
-        t = threading.Thread(target=threadedSaveCap)
+    if button3.cget("text") == "EXPORT":
+        t = threading.Thread(target=export)
     elif bottom_label.winfo_ismapped() == True:
         t = threading.Thread(target=multiFrameCapture)
-    elif button3.cget("text") == "EXPORT":
-        t = threading.Thread(target=export)
+    else:
+        t = threading.Thread(target=threadedSaveCap)
     t.start()
 
 def createFolder(folderName, parent_dir, counter):
