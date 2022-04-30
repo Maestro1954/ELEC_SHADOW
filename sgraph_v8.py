@@ -9,7 +9,6 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 from subprocess import call
 
-
 # GLOBAL VARIABLES
 img_counter = 0
 mult_frame_counter = 0
@@ -51,6 +50,8 @@ success, frame = capture.read()
 if not success:
 	print("Can't receive frame (stream end?). Exiting ...")
 	sys.exit(1)
+else:
+    call("unclutter -idle 0.1", shell=True)
 
 ###############################################
 ################### CAPTURE ###################
@@ -59,22 +60,21 @@ if not success:
 def capSaveWindow(event = 0):
     global cancel, frame, schedule_frame
     
-    if not timerArmed:
-        cancel = True
-        _, frame = capture.read()
-        schedule_frame = True
-        button0.place_forget()
-        button3.place_forget()
-        buttonX.config(state='disabled')
-        button1.config(text="SAVE IMAGE", command=saveCapture)
-        button2.config(text="DISCARD", command=restoreMenu, state='normal')
-        button2.place(bordermode=tk.INSIDE, relx=0.5, rely=0.388, anchor=tk.CENTER, width=120, height=22)
-        
-    else:
+    if timerArmed:
         cancel = False
         button1.place_forget()
         buttonX.config(text="RETURN", command=restoreMenu)
         button0.config(text="START TIMER", command=threader)
+    else:
+        cancel = True
+        _, frame = capture.read()
+        schedule_frame = True
+        button0.config(text="", command="")
+        button3.config(text="", command="")
+        buttonX.config(state='disabled')
+        button1.config(text="SAVE IMAGE", command=saveCapture)
+        button2.config(text="DISCARD", command=restoreMenu, state='normal')
+        button2.place(bordermode=tk.INSIDE, relx=0.5, rely=0.388, anchor=tk.CENTER, width=120, height=22)
 
 def saveCapture(event = 0):
     global img_counter, frame, cancel
@@ -95,7 +95,7 @@ def threadedSaveCap(event = 0):
         if timerCount > 0:
             timerCount -= 1
             timerText = clockString(timerCount)
-            time.sleep(1)
+            time.sleep(0.96)
             if timerCount < 11:
                 btn_window.config(image=red_btn_window)
                 btnX_window.config(image=red_btnX)
@@ -103,7 +103,7 @@ def threadedSaveCap(event = 0):
             top_label.config(text=timerText)
         else:
             top_label.config(text=timerText)
-            time.sleep(1)
+            time.sleep(0.96)
             top_label.place_forget()
             timerArmed = False
     
@@ -187,7 +187,7 @@ def multiFramePhaseTwo(event = 0):
     bottom_label.place(bordermode=tk.INSIDE, relx=0.5, rely=0.612, anchor=tk.CENTER, width=120, height=22) # Frames: 0000
 
 def multiFrameCapture(event = 0):
-    global mult_frame_session, timerArmed, numFrames, mult_frame_counter, timerCount
+    global mult_frame_session, timerArmed, numFrames, mult_frame_counter, timerCount, cancel, schedule_frame
 
     mult_frame_folderpath, mult_frame_session = createFolder("Multi-Frame Captures ", screenshot_filepath, mult_frame_session)
 
@@ -204,7 +204,7 @@ def multiFrameCapture(event = 0):
         if timerCount > 0:
             timerCount -= 1
             timerText = clockString(timerCount)
-            time.sleep(1)
+            time.sleep(0.96)
             if timerCount < 11:
                 btn_window.config(image=red_btn_window)
                 btnX_window.config(image=red_btnX)
@@ -213,7 +213,7 @@ def multiFrameCapture(event = 0):
             top_label.config(text=timerText)
         else:
             top_label.config(text=timerText)
-            time.sleep(1)
+            time.sleep(0.96)
             timerArmed = False
             top_label.config(text="CAPTURE\nIN PROGRESS", font=('Ariel', 10))
             top_label.place(height=30)
@@ -224,16 +224,18 @@ def multiFrameCapture(event = 0):
         _, frame = capture.read()
         captureArr.append(frame)
         numFrames -= 1
-        time.sleep(0.1)
+        time.sleep(0.08)
     
     top_label.config(text="PROCESSING\nCAPTURES")
     bottom_label.config(fg=beans)
+    cancel = True
 
     for cap in captureArr:
         screenshot = mult_frame_folderpath + "/frame_capture_{}.png".format(mult_frame_counter)
         cv.imwrite(screenshot, cap)
         mult_frame_counter += 1
 
+    schedule_frame = True
     restoreMenu()
 
 def addSecondsMF():
@@ -371,7 +373,8 @@ def clockString(timeCount):
 ###############################################
 
 def export():
-    global export_counter
+    global export_counter, cancel, schedule_frame
+    cancel = True
     usbDetected = False
     
     # Finding the USB directory
@@ -396,6 +399,8 @@ def export():
         usbDetected = False
     else:
         messagebox.showinfo('ERROR!', 'No USB storage device detected.')
+    
+    schedule_frame = True
     restoreMenu()
 
 ###############################################
@@ -428,10 +433,10 @@ def restoreMenu(event=0):
     cancel=False
     
     # For a smooth transition, clear menu of all buttons before configuring and then placing
-    button0.place_forget()
-    button1.place_forget()
-    button2.place_forget()
-    button3.place_forget()
+    button0.config(text="", command="")
+    button1.config(text="", command="")
+    button2.config(text="", command="")
+    button3.config(text="", command="")
     button4.place_forget()
     top_label.place_forget()
     bottom_label.place_forget()
@@ -474,17 +479,16 @@ def restoreMenu(event=0):
 # Turns the menu to red when EXITing, or displays the EXPORT in progress notification
 def standByMenu(exporting):
     buttonX.config(state='disabled')
+    button3.config(state='disabled')
     button2.config(state='disabled')
     button1.config(state='disabled')
     button0.config(state='disabled')
     
     if not exporting:
-        button3.config(state='disabled')
         btnX_window.config(image=red_btnX)
         btn_window.config(image=red_btn_window)
     else:
-        button3.place_forget()
-        top_label.config(text="EXPORT\nIN PROGRESS", font=('Ariel', 10))
+        top_label.config(text="EXPORT\nIN PROGRESS", fg=orange, font=('Ariel', 10))
         top_label.place(bordermode=tk.INSIDE, relx=0.5, rely=0.164, anchor=tk.CENTER, width=120, height=30)
 
 # Allows the live-feed to work independently from any 'while' loops in the program that need to run
@@ -587,6 +591,7 @@ button1.lift()
 button2.lift()
 button3.lift()
 button4.lift()
+top_label.lift()
 
 # Update live feed frame
 def show_frame():
