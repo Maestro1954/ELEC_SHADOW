@@ -29,6 +29,7 @@ papaya = '#fb8f6d'
 eggshell = '#f6f3c0'
 beans = '#532a07'
 eggplant = '#2a082a'
+elec_blue = '#041e41'
 # Filepaths
 btn_png_filepath = '/home/pi/ELEC_SHADOW/Button PNGs'
 screenshot_filepath = "/home/pi/ELEC_SHADOW/Screenshots"
@@ -64,10 +65,10 @@ def capSaveWindow(event = 0):
         schedule_frame = True
         button0.place_forget()
         button3.place_forget()
-        buttonX.config(fg=beans, command="")
-        button1.config(text="SAVE IMAGE", fg=eggshell, command=saveCapture)
-        button2.config(text="DISCARD", font=('Ariel', 13), fg=eggshell, command=restoreMenu)
-        button2.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.388, anchor=tk.CENTER, width=120, height=22)
+        buttonX.config(state='disabled')
+        button1.config(text="SAVE IMAGE", command=saveCapture)
+        button2.config(text="DISCARD", command=restoreMenu, state='normal')
+        button2.place(bordermode=tk.INSIDE, relx=0.5, rely=0.388, anchor=tk.CENTER, width=120, height=22)
         
     else:
         cancel = False
@@ -84,11 +85,11 @@ def saveCapture(event = 0):
     restoreMenu()
 
 def threadedSaveCap(event = 0):
-    global timerCount, timerArmed, img_counter, cancel, btn_window, top_label
+    global timerArmed, timerCount
 
-    button0.config(fg=beans, command="")
-    button2.config(fg=beans, command="")
-    buttonX.config(fg=beans, command="")
+    button0.config(state='disabled')
+    button2.config(state='disabled')
+    buttonX.config(state='disabled')
 
     while timerArmed:
         if timerCount > 0:
@@ -106,7 +107,7 @@ def threadedSaveCap(event = 0):
             top_label.place_forget()
             timerArmed = False
     
-    button1.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.612, anchor=tk.CENTER, width=120, height=22)
+    button1.place(bordermode=tk.INSIDE, relx=0.5, rely=0.612, anchor=tk.CENTER, width=120, height=22)
     capSaveWindow()
 
 ###############################################
@@ -114,7 +115,7 @@ def threadedSaveCap(event = 0):
 ###############################################
 
 def multiFrameWindow(event = 0):
-    global cancel, top_label, bottom_label, frameText, numFrames
+    global cancel, numFrames
     cancel = False
 
     if timerArmed:
@@ -134,26 +135,26 @@ def multiFrameWindow(event = 0):
     if mfTimeCount == 0:
         button1.config(image=dim_down_arrow, command=subtractMinutesMF)
         button0.config(image=dim_down_arrow, command=subtractSecondsMF)
-        button3.config(text="SET FRAMES", fg=beans, image="", command="")
+        button3.config(text="SET FRAMES", state='disabled')
     elif mfTimeCount < 60:
         button1.config(image=dim_down_arrow, command=subtractMinutesMF)
         button0.config(image=down_arrow, command=subtractSecondsMF)
-        button3.config(text="SET FRAMES", fg=eggshell, image="", command=multiCapTimerWindow)
+        button3.config(text="SET FRAMES", command=multiFramePhaseTwo, state='normal')
     else:
         button1.config(image=down_arrow, command=subtractMinutesMF)
         button0.config(image=down_arrow, command=subtractSecondsMF)
-        button3.config(text="SET FRAMES", fg=eggshell, image="", command=multiCapTimerWindow)
+        button3.config(text="SET FRAMES", command=multiFramePhaseTwo, state='normal')
 
     buttonX.config(text="RETURN", command=restoreMenu) # RETURN    
-    button3.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.164, anchor=tk.CENTER, width=120, height=22) # CAPTURE/SET FRAMES
-    button0.place_configure(bordermode=tk.INSIDE, relx=0.66, rely=0.734, anchor=tk.CENTER, width=30, height=25) # sub sec
-    button1.place_configure(bordermode=tk.INSIDE, relx=0.33, rely=0.734, anchor=tk.CENTER, width=30, height=25) # sub min
-    bottom_label.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.556, anchor=tk.CENTER, width=120, height=30) # frameTimeText
-    button2.place_configure(bordermode=tk.INSIDE, relx=0.66, rely=0.377, anchor=tk.CENTER, width=30, height=25) # add sec
-    button4.place_configure(bordermode=tk.INSIDE, relx=0.33, rely=0.377, anchor=tk.CENTER, width=30, height=25) # add min
+    button3.place(bordermode=tk.INSIDE, relx=0.5, rely=0.164, anchor=tk.CENTER, width=120, height=22) # CAPTURE/SET FRAMES
+    button0.place(bordermode=tk.INSIDE, relx=0.66, rely=0.734, anchor=tk.CENTER, width=30, height=25) # sub sec
+    button1.place(bordermode=tk.INSIDE, relx=0.33, rely=0.734, anchor=tk.CENTER, width=30, height=25) # sub min
+    bottom_label.place(bordermode=tk.INSIDE, relx=0.5, rely=0.556, anchor=tk.CENTER, width=120, height=30) # frameTimeText
+    button2.place(bordermode=tk.INSIDE, relx=0.66, rely=0.377, anchor=tk.CENTER, width=30, height=25) # add sec
+    button4.place(bordermode=tk.INSIDE, relx=0.33, rely=0.377, anchor=tk.CENTER, width=30, height=25) # add min
 
-def multiCapTimerWindow(event = 0):
-    global button0, button1, button2, button3, button4, cancel, bottom_label, timerCount, frameText
+def multiFramePhaseTwo(event = 0):
+    global cancel
     cancel = False
     
     # For a smooth transition, clear menu of all buttons before configuring and then placing
@@ -177,27 +178,27 @@ def multiCapTimerWindow(event = 0):
             bottom_label.config(text="FRAMES: " + frameText, font=('Ariel', 13), fg=mint)
         
         top_label.place(bordermode=tk.INSIDE, relx=0.5, rely=0.164, anchor=tk.CENTER, width=120, height=22) # 00:00
-        button2.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.388, anchor=tk.CENTER, width=120, height=22) # SET TIMER
+        button2.place(bordermode=tk.INSIDE, relx=0.5, rely=0.388, anchor=tk.CENTER, width=120, height=22) # SET TIMER
     else:
         bottom_label.config(text="FRAMES: " + frameText, font=('Ariel', 13), fg=orange)
         button0.config(text="CAPTURE", image="", command=threader)
 
-    button0.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.836, anchor=tk.CENTER, width=120, height=22) # START TIMER/CAPTURE
-    bottom_label.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.612, anchor=tk.CENTER, width=120, height=22) # Frames: 0000
+    button0.place(bordermode=tk.INSIDE, relx=0.5, rely=0.836, anchor=tk.CENTER, width=120, height=22) # START TIMER/CAPTURE
+    bottom_label.place(bordermode=tk.INSIDE, relx=0.5, rely=0.612, anchor=tk.CENTER, width=120, height=22) # Frames: 0000
 
 def multiFrameCapture(event = 0):
-    global frame, numFrames, mult_frame_counter, timerArmed, timerCount, timerText, mult_frame_session
+    global mult_frame_session, timerArmed, numFrames, mult_frame_counter, timerCount
 
     mult_frame_folderpath, mult_frame_session = createFolder("Multi-Frame Captures ", screenshot_filepath, mult_frame_session)
 
     if timerArmed:
-        button2.config(fg=beans, command="")
+        button2.config(state='disabled')
     else:
         top_label.config(text="CAPTURE\nIN PROGRESS", font=('Ariel', 10), fg=orange)
         top_label.place(bordermode=tk.INSIDE, relx=0.5, rely=0.164, anchor=tk.CENTER, width=120, height=30) # 00:00
 
-    button0.config(fg=beans, command="")
-    buttonX.config(fg=beans, command="")
+    button0.config(state='disabled')
+    buttonX.config(state='disabled')
 
     while timerArmed:
         if timerCount > 0:
@@ -215,15 +216,23 @@ def multiFrameCapture(event = 0):
             time.sleep(1)
             timerArmed = False
             top_label.config(text="CAPTURE\nIN PROGRESS", font=('Ariel', 10))
-            top_label.place_configure(height=30)
+            top_label.place(height=30)
     
+    captureArr = []
+
     while numFrames > 0:
         _, frame = capture.read()
-        screenshot = mult_frame_folderpath + "/frame_capture_{}.png".format(mult_frame_counter)
-        cv.imwrite(screenshot, frame)
-        mult_frame_counter += 1
+        captureArr.append(frame)
         numFrames -= 1
         time.sleep(0.1)
+    
+    top_label.config(text="PROCESSING\nCAPTURES")
+    bottom_label.config(fg=beans)
+
+    for cap in captureArr:
+        screenshot = mult_frame_folderpath + "/frame_capture_{}.png".format(mult_frame_counter)
+        cv.imwrite(screenshot, cap)
+        mult_frame_counter += 1
 
     restoreMenu()
 
@@ -264,11 +273,10 @@ def subtractMinutesMF():
 ###############################################
 
 def timerWindow(event=0):
-    global cancel, timeText, top_label, bottom_label
+    global cancel, timeText
     cancel = False
 
-    if bottom_label.winfo_ismapped():
-        bottom_label.place_forget()
+    bottom_label.place_forget()
 
     timeText = clockString(timerCount)
     top_label.config(text=timeText, font=('Ariel', 19), fg=eggshell)
@@ -291,15 +299,13 @@ def timerWindow(event=0):
     else:
         button1.config(image=down_arrow, command=subtractMinutesTimer)
         button0.config(image=down_arrow, command=subtractSecondsTimer)
-    
-    if not button3.winfo_ismapped():
-        button3.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.164, anchor=tk.CENTER, width=120, height=22) # SET TIMER
 
-    button0.place_configure(bordermode=tk.INSIDE, relx=0.66, rely=0.734, anchor=tk.CENTER, width=30, height=25) # sub sec
-    button1.place_configure(bordermode=tk.INSIDE, relx=0.33, rely=0.734, anchor=tk.CENTER, width=30, height=25) # sub min
-    top_label.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.556, anchor=tk.CENTER, width=120, height=30) # timeText
-    button2.place_configure(bordermode=tk.INSIDE, relx=0.66, rely=0.377, anchor=tk.CENTER, width=30, height=25) # add sec
-    button4.place_configure(bordermode=tk.INSIDE, relx=0.33, rely=0.377, anchor=tk.CENTER, width=30, height=25) # add min
+    button3.place(bordermode=tk.INSIDE, relx=0.5, rely=0.164, anchor=tk.CENTER, width=120, height=22) # SET TIMER
+    button0.place(bordermode=tk.INSIDE, relx=0.66, rely=0.734, anchor=tk.CENTER, width=30, height=25) # sub sec
+    button1.place(bordermode=tk.INSIDE, relx=0.33, rely=0.734, anchor=tk.CENTER, width=30, height=25) # sub min
+    top_label.place(bordermode=tk.INSIDE, relx=0.5, rely=0.556, anchor=tk.CENTER, width=120, height=30) # timeText
+    button2.place(bordermode=tk.INSIDE, relx=0.66, rely=0.377, anchor=tk.CENTER, width=30, height=25) # add sec
+    button4.place(bordermode=tk.INSIDE, relx=0.33, rely=0.377, anchor=tk.CENTER, width=30, height=25) # add min
 
 # Allows you to RETURN to the main menu without arming the timer by setting the clock equal to 00:00
 def clearTimer(event=0):
@@ -365,7 +371,7 @@ def clockString(timeCount):
 ###############################################
 
 def export():
-    global usb_path, export_counter
+    global export_counter
     usbDetected = False
     
     # Finding the USB directory
@@ -418,7 +424,7 @@ def warningMessage(event = 0):
 
 # Restores the main menu to its default button mapping or timer mapping if timer is armed
 def restoreMenu(event=0):
-    global btn_window, top_label, bottom_label, cancel, timerArmed, schedule_frame, timerCount, numFrames, mfTimeCount, mult_frame_counter
+    global cancel, timerArmed, numFrames, mfTimeCount, mult_frame_counter, schedule_frame
     cancel=False
     
     # For a smooth transition, clear menu of all buttons before configuring and then placing
@@ -430,10 +436,10 @@ def restoreMenu(event=0):
     top_label.place_forget()
     bottom_label.place_forget()
 
-    buttonX.configure(text="EXIT", font=('Ariel', 13), fg=eggshell, command=warningMessage)
-    button0.config(text="CAPTURE", image="", font=('Ariel', 13), fg=eggshell, command=capSaveWindow)
-    button1.config(text="MULTI-FRAME", image="", font=('Ariel', 13), fg=eggshell, command=multiFrameWindow)
-    button2.config(text="SET TIMER", image="", font=('Ariel', 13), fg=eggshell, command=timerWindow)
+    buttonX.config(text="EXIT", command=warningMessage, state='normal')
+    button0.config(text="CAPTURE", image="", command=capSaveWindow, state='normal')
+    button1.config(text="MULTI-FRAME", image="", command=multiFrameWindow, state='normal')
+    button2.config(text="SET TIMER", image="", command=timerWindow, state='normal')
 
     numFrames = 0
     mfTimeCount = 0
@@ -443,8 +449,8 @@ def restoreMenu(event=0):
         timerArmed = False
         btn_window.config(image=orng_btn_window)
         btnX_window.config(image=orng_btnX)
-        button3.config(text="EXPORT", image="", font=('Ariel', 13), fg=eggshell, command=threader)
-        button3.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.164, anchor=tk.CENTER, width=120, height=22)
+        button3.config(text="EXPORT", command=threader, state='normal')
+        button3.place(bordermode=tk.INSIDE, relx=0.5, rely=0.164, anchor=tk.CENTER, width=120, height=22)
     else:
         timerArmed = True
         if timerCount < 11:
@@ -455,11 +461,11 @@ def restoreMenu(event=0):
             btn_window.config(image=green_btn_window)
             btnX_window.config(image=green_btnX)
             top_label.config(text=timeText, font=('Ariel', 19), fg=mint)
-        top_label.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.164, anchor=tk.CENTER, width=120, height=22)
+        top_label.place(bordermode=tk.INSIDE, relx=0.5, rely=0.164, anchor=tk.CENTER, width=120, height=22)
 
-    button0.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.836, anchor=tk.CENTER, width=120, height=22)
-    button1.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.612, anchor=tk.CENTER, width=120, height=22)
-    button2.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.388, anchor=tk.CENTER, width=120, height=22)
+    button0.place(bordermode=tk.INSIDE, relx=0.5, rely=0.836, anchor=tk.CENTER, width=120, height=22)
+    button1.place(bordermode=tk.INSIDE, relx=0.5, rely=0.612, anchor=tk.CENTER, width=120, height=22)
+    button2.place(bordermode=tk.INSIDE, relx=0.5, rely=0.388, anchor=tk.CENTER, width=120, height=22)
 
     if schedule_frame:
         schedule_frame = False
@@ -467,19 +473,19 @@ def restoreMenu(event=0):
 
 # Turns the menu to red when EXITing, or displays the EXPORT in progress notification
 def standByMenu(exporting):
-    buttonX.config(fg=beans, command="")
-    button2.config(fg=beans, command="")
-    button1.config(fg=beans, command="")
-    button0.config(fg=beans, command="")
+    buttonX.config(state='disabled')
+    button2.config(state='disabled')
+    button1.config(state='disabled')
+    button0.config(state='disabled')
     
     if not exporting:
-        button3.config(fg=beans, command="")
+        button3.config(state='disabled')
         btnX_window.config(image=red_btnX)
         btn_window.config(image=red_btn_window)
     else:
         button3.place_forget()
         top_label.config(text="EXPORT\nIN PROGRESS", font=('Ariel', 10))
-        top_label.place_configure(bordermode=tk.INSIDE, relx=0.5, rely=0.164, anchor=tk.CENTER, width=120, height=30)
+        top_label.place(bordermode=tk.INSIDE, relx=0.5, rely=0.164, anchor=tk.CENTER, width=120, height=30)
 
 # Allows the live-feed to work independently from any 'while' loops in the program that need to run
 def threader(event=0):
@@ -552,15 +558,15 @@ bottom_label = tk.Label(btn_menu, fg=eggshell, bg=eggplant)
 
 
 buttonX = tk.Button(btnX_menu, text="EXIT", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=warningMessage, 
-                    borderwidth=0, highlightthickness=0, activebackground=eggplant, activeforeground=eggshell)
+                    borderwidth=0, highlightthickness=0, activebackground=eggplant, activeforeground=eggshell, disabledforeground=beans)
 button0 = tk.Button(btn_menu, text="CAPTURE", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=capSaveWindow, 
-                    borderwidth=0, highlightthickness=0, activebackground=eggplant, activeforeground=eggshell)
+                    borderwidth=0, highlightthickness=0, activebackground=eggplant, activeforeground=eggshell, disabledforeground=beans)
 button1 = tk.Button(btn_menu, text="MULTI-FRAME", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=multiFrameWindow, 
-                    borderwidth=0, highlightthickness=0, activebackground=eggplant, activeforeground=eggshell)
+                    borderwidth=0, highlightthickness=0, activebackground=eggplant, activeforeground=eggshell, disabledforeground=beans)
 button2 = tk.Button(btn_menu, text="SET TIMER", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=timerWindow, 
-                    borderwidth=0, highlightthickness=0, activebackground=eggplant, activeforeground=eggshell)
+                    borderwidth=0, highlightthickness=0, activebackground=eggplant, activeforeground=eggshell, disabledforeground=beans)
 button3 = tk.Button(btn_menu, text="EXPORT", font=('Ariel', 13), bg=eggplant, fg=eggshell, command=threader, 
-                    borderwidth=0, highlightthickness=0, activebackground=eggplant)
+                    borderwidth=0, highlightthickness=0, activebackground=eggplant, activeforeground=eggshell, disabledforeground=beans)
 button4 = tk.Button(btn_menu, bg=eggplant, command="", borderwidth=0, highlightthickness=0, activebackground=eggplant)
 
 live_feed.pack()
@@ -594,6 +600,7 @@ def show_frame():
     imgtk = ImageTk.PhotoImage(image=prevImg)
     live_feed.imgtk = imgtk
     live_feed.configure(image=imgtk)
+    #live_feed.configure(bg=elec_blue)
 
     if not cancel:
         live_feed.after(10, show_frame)
